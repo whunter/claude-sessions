@@ -116,6 +116,36 @@ Added all three to `multi_value_headers`:
 Committed as `1cc7361` ("Add taxonomy, extracted_text, title_template to
 headers_keys.json"), not yet pushed.
 
+## Part 3: unwrap DynamoDB typed values
+Follow-up ask: DynamoDB CSV exports store each field's value(s) wrapped in
+the raw AttributeValue JSON shape, e.g. `[{"S":"Article related to
+COVID-19 from Virginia Tech News."}]`, or for a List-type attribute with
+multiple entries, `[{"S":"COVID-19 (Disease) -- Press
+Coverage"},{"S":"University History"}]`. Extract the plain value(s) before
+they're added to the record dict, rather than passing the raw typed JSON
+through as the literal string value.
+
+Inspected `all_values_archive_metadata.csv` column-by-column: fields backed
+by a DynamoDB List type (`creator`, `description`, `format`, `rights`,
+`tags`, etc. — i.e. the existing `multi_value_headers`) export wrapped in
+this `[{"S":"..."}]` shape; plain-String-type fields (`id`, `identifier`,
+`custom_key`, dates, `title`, etc.) export as ordinary unwrapped strings.
+
+Added `unwrap_dynamodb_value` in `generic_metadata.py`: detects the exact
+`[{...}]` shape via a cheap prefix/suffix check before attempting
+`json.loads`, requires every list entry to be a single-key dict whose value
+is a plain scalar (falls back to returning the original string untouched
+for anything that doesn't match — including the multi-key/nested-value
+shapes DynamoDB uses for other types, which aren't expected in this CSV
+export format), and joins multiple entries with `||` — matching the same
+delimiter `extract_attribute` already expects for multi-value headers, so
+no downstream parsing changes were needed. Wired into
+`process_metadata_and_env`, applied to every cell right after the existing
+strip/quote-strip cleanup and before `set_attribute` is called.
+
+Committed as `479e20e` ("Unwrap DynamoDB typed values in metadata CSV
+ingest"), not yet pushed.
+
 ## Verification
 No existing test suite for this module (none found in the repo). Verified
 by:
@@ -127,11 +157,17 @@ by:
   (ignored / special-cased / passed-through / would-warn-and-drop). Every
   column in the real export now resolves to either "ignored" or
   "passed through normally" — no unexpected drops.
+- (Part 3) A standalone script that ran `unwrap_dynamodb_value` against
+  every cell of the real export's first data row, confirming every
+  DynamoDB-typed column unwraps to its plain value (multi-entry columns
+  correctly `||`-joined) and every already-plain column passes through
+  byte-for-byte unchanged.
 
 ## Status at end of session
-Two commits on `dlp-ingest` `dev`, neither pushed to origin:
+Three commits on `dlp-ingest` `dev`, none pushed to origin:
 - `d651bb0` — "Ignore DynamoDB-generated columns on metadata ingest"
 - `1cc7361` — "Add taxonomy, extracted_text, title_template to headers_keys.json"
+- `479e20e` — "Unwrap DynamoDB typed values in metadata CSV ingest"
 
 See `handoff.md` for exact commit contents and next steps.
 

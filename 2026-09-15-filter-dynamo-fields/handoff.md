@@ -2,9 +2,10 @@
 
 ## Context
 `dlp-ingest` repo, branch `dev`. Full investigation in `session-summary.md`.
-Two commits made, **neither pushed**:
+Three commits made, **none pushed**:
 
 ```
+479e20e Unwrap DynamoDB typed values in metadata CSV ingest
 1cc7361 Add taxonomy, extracted_text, title_template to headers_keys.json
 d651bb0 Ignore DynamoDB-generated columns on metadata ingest
 ```
@@ -28,6 +29,16 @@ d651bb0 Ignore DynamoDB-generated columns on metadata ingest
   schema-diff results (including fields deliberately left unaddressed) are
   in `session-summary.md`.
 
+`479e20e`:
+- `ingest_classes/metadata/generic_metadata.py` — new
+  `unwrap_dynamodb_value` method: detects DynamoDB's raw typed-value export
+  shape (`[{"S":"foo"}]`, or `[{"S":"foo"},{"S":"bar"}]` for List-type
+  attributes with multiple entries) and returns the plain value(s) instead
+  (`||`-joined for multiples, matching the delimiter `extract_attribute`
+  already expects). Anything not matching that exact shape passes through
+  untouched. Wired into `process_metadata_and_env`, applied to every cell
+  before it reaches `set_attribute`.
+
 ## Final column classification (verified against the real Dynamo export)
 Checked every column in
 `/Users/whunter/dev/dlp/assets/iawa/meta/all_values_archive_metadata.csv`:
@@ -46,6 +57,15 @@ unknown/misspelled columns going forward, not for anything in this export.
 - **Not pushed.** Push `dev` when ready — no instruction was given to push
   automatically outside of this write-a-summary flow, and the earlier
   commit-only requests didn't ask for a push either.
+- `unwrap_dynamodb_value` only handles the single-key-scalar `[{"S":"..."}]`
+  shape seen in this export (DynamoDB List-of-String attributes). It
+  deliberately bails out (returns the original string untouched) on
+  anything else — other DynamoDB types (`N`, `BOOL`, `M`, `L`, `SS`, `NS`,
+  etc.) or malformed/nested shapes — since none of those appeared in the
+  real export used to build and verify this. If a future export contains
+  columns backed by a different DynamoDB type wrapped this way, they'll
+  currently pass through as their raw JSON string rather than being
+  unwrapped.
 - Schema-diff found several other `Archive`/`Collection` fields with no
   ingest path at all (`age`, `archiveOptions`, `manifest_file_characterization`,
   `partner_id`, `collectionmap_id`, `collectionOptions`, `ownerinfo`).
