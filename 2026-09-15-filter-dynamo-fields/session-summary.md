@@ -77,6 +77,45 @@ the only caller of `set_attribute` with `attr == "thumbnail_path"`).
   `set_attribute` (unreachable now that the column is ignored upstream; no
   other caller of `set_attribute` existed).
 
+## Part 2: schema comparison + missing-field fixes
+Follow-up ask: compare `headers_keys.json`'s lists against the `Archive` and
+`Collection` types in
+`/Users/whunter/dev/dlp/access/dlp-access/amplify/backend/api/vtdlp/schema.graphql`
+and list schema fields absent from `headers_keys.json`.
+
+Extracted every scalar/list field from both GraphQL types (excluding
+`@hasOne`/`@hasMany` relation fields, which aren't CSV columns) and diffed
+against the union of `single_value_headers` + `multi_value_headers` +
+`ignored_headers`. Found 12 fields absent from the JSON lists:
+
+- `archived`, `visibility` — not actually gaps; both are special-cased by
+  name directly in `set_attribute` rather than routed through the header
+  lists, so they work correctly despite being absent from the JSON.
+- `age`, `archiveOptions`, `extracted_text`, `manifest_file_characterization`,
+  `taxonomy`, `title_template`, `partner_id`, `collectionmap_id`,
+  `collectionOptions`, `ownerinfo` — genuine gaps. None of these had any
+  path into ingest; if a CSV supplied them, `extract_attribute` returned
+  `None` and (pre-this-session) they'd silently vanish, or (post-Part-1-fix)
+  get skipped with a warning. `collectionmap_id` also looks like it belongs
+  in `ignored_headers` rather than the writable lists, since it's generated
+  by `update_collection_map`, not user-supplied.
+
+User asked to add only `taxonomy`, `extracted_text`, and `title_template`
+(explicitly said to ignore the rest — `age`, `archiveOptions`,
+`manifest_file_characterization`, `partner_id`, `collectionmap_id`,
+`collectionOptions`, `ownerinfo` remain unaddressed/out of scope).
+
+Added all three to `multi_value_headers`:
+- `taxonomy` and `title_template` are `[String!]` in the schema, matching
+  the existing multi-value convention.
+- `extracted_text` is `AWSJSON` in the schema, but follows the same
+  precedent as the already-present `alt_text`/`visual_description`
+  (also `AWSJSON`, added in the separate prior commit `5cac4cd`) — treated
+  as `||`-delimited multi-value rather than raw JSON.
+
+Committed as `1cc7361` ("Add taxonomy, extracted_text, title_template to
+headers_keys.json"), not yet pushed.
+
 ## Verification
 No existing test suite for this module (none found in the repo). Verified
 by:
@@ -90,9 +129,11 @@ by:
   "passed through normally" — no unexpected drops.
 
 ## Status at end of session
-Change committed to `dev` locally as `d651bb0`
-("Ignore DynamoDB-generated columns on metadata ingest"), not yet pushed to
-origin. See `handoff.md` for the exact commit contents and next steps.
+Two commits on `dlp-ingest` `dev`, neither pushed to origin:
+- `d651bb0` — "Ignore DynamoDB-generated columns on metadata ingest"
+- `1cc7361` — "Add taxonomy, extracted_text, title_template to headers_keys.json"
+
+See `handoff.md` for exact commit contents and next steps.
 
 ## Files touched
 - `data/headers_keys.json`
