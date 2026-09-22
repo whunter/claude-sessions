@@ -220,3 +220,43 @@ left to roll back from.
   needs to be re-disambiguated, use the current `apply` command so a
   proper change-log gets written this time.
 - Nothing pushed to remote per standing instructions; push/PR on request.
+
+## Continuation 3: report filename + Markdown collection list
+
+Same day, a new session. Two small changes to `report`:
+
+1. **"Instead of prepending the timestamp to the filename for
+   duplicate_titles.json, move the timestamp to the end."** `runReport` now
+   splits `output_file` into its name and extension and builds
+   `<name>_<timestamp><ext>`, e.g. `duplicate_titles_20260922T153000Z.json`.
+   README paths and examples updated to match.
+2. **"Create a second output file with the same filename but in markdown.
+   Write a list of the identifiers of collections that have existing
+   duplicate titles."** `report` now also writes `<name>_<timestamp>.md`
+   with a heading and a sorted bullet list of collection identifiers. A
+   collection is listed if any of its records is in any duplicate group,
+   which matches what `apply -collection_identifier` would change. Records
+   with no resolved collection are skipped. Added `duplicateCollections`
+   and `collectionsMarkdown` to `main.go`, and `report` prints the count
+   and path. README documents the new file.
+3. Updated README, `handoff.md`, and this summary.
+
+`go build` and `go vet` pass. `report` was not run against the live table,
+and no unit tests were added for the new helpers.
+
+### Commits (not pushed)
+
+- `a0ef2b9` — Append report timestamp to output_file stem instead of
+  prepending it
+- `cf5e99f` — Write Markdown list of collections with duplicate titles
+  alongside report JSON
+- `e65aa70` — README: note report's Markdown collection list and
+  timestamped filename throughout
+
+### Not yet done / caveats (continuation 3)
+
+- The `.md` output hasn't been checked on a real `report` run yet.
+- One open question: should a collection be listed only when two of *its
+  own* records share a title? Right now it's also listed when its record
+  shares a title with a record in a different collection.
+- Nothing pushed to remote per standing instructions; push/PR on request.

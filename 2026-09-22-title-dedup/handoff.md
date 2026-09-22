@@ -6,7 +6,8 @@
 four subcommands:
 
 - `report` — scans the `Archive` table, writes a JSON report of every title
-  shared by 2+ records. Also resolves each record's parent collection id to
+  shared by 2+ records, plus a Markdown file listing every collection that
+  has at least one of those records. Also resolves each record's parent collection id to
   the collection's human-readable identifier, via a new `collection_table_name`
   scan.
 - `apply` — disambiguates one collection's duplicate titles at a time,
@@ -29,7 +30,8 @@ usage; this file is a narrower "what changed / what's next" note.
 ## Commands
 
 ```sh
-# 1. Scan and write output/<timestamp>_duplicate_titles.json
+# 1. Scan and write output/duplicate_titles_<timestamp>.json, plus
+#    output/duplicate_titles_<timestamp>.md listing affected collections
 archive-title-dedup report -config config.yaml
 
 # 2. Preview one collection's renames (no writes)
@@ -68,7 +70,7 @@ region: us-east-1
 table_name: Archive-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev
 collection_table_name: Collection-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev  # required for `report`
 output_dir: output
-output_file: duplicate_titles.json  # report writes <output_dir>/<timestamp>_<output_file>
+output_file: duplicate_titles.json  # report writes <output_dir>/duplicate_titles_<timestamp>.json (+ .md)
 concurrency: 10
 # optional fallbacks for apply/rollback's -collection_identifier and apply's -suffix:
 # collection_identifier: FCHS_OBJ
@@ -158,7 +160,30 @@ This is a one-way trip in the sense that there's no change-log of *this*
 revert — if `vtec` needs to be re-disambiguated, use the current `apply`
 command, which will produce one.
 
-## Important: regenerate `output/<timestamp>_duplicate_titles.json` before using `apply`/`rollback`
+## What changed in this third continuation session
+
+1. **Timestamp moved to the end of the report filename.** `report` now
+   writes `<output_dir>/<output_file stem>_<timestamp><ext>` (e.g.
+   `output/duplicate_titles_20260922T153000Z.json`) instead of
+   `<timestamp>_<output_file>`, so report files sort together by name.
+   Commit `a0ef2b9`.
+2. **`report` also writes a Markdown collection list.** Same path as the
+   JSON but with a `.md` extension. It has a `# Collections with duplicate
+   titles` heading and one bullet per collection identifier, sorted. A
+   collection is listed if any of its records is in any duplicate-title
+   group, even a group that spans several collections. That is exactly the
+   set of collections `apply -collection_identifier` would change. Records
+   with no resolved collection are left out. The file says "None." if
+   there are no duplicates. Code: `duplicateCollections` and
+   `collectionsMarkdown` in `main.go`. Commit `cf5e99f`.
+3. README updated throughout for both changes (commits `cf5e99f`,
+   `e65aa70`).
+
+Only `go build`/`go vet` were run for these changes. `report` has not been
+run against the live table since, so the `.md` output hasn't been seen on
+real data. No unit tests were added for `duplicateCollections`.
+
+## Important: regenerate `output/duplicate_titles_<timestamp>.json` before using `apply`/`rollback`
 
 Any report file from before this session's `collection_identifier` change
 has no `collection_identifier` field, so nothing in it will match `apply`
@@ -169,13 +194,13 @@ which it wasn't before this session).
 ## Next steps for whoever picks this up
 
 1. Set `collection_table_name` in `config.yaml` if not already done, and
-   re-run `report` to get a fresh, timestamped `duplicate_titles.json` with
-   `collection_id`/`collection_identifier` populated.
+   re-run `report` to get a fresh `duplicate_titles_<timestamp>.json` with
+   `collection_id`/`collection_identifier` populated. Use the matching
+   `.md` file as the checklist of collections still to process.
 2. `vtec` is now back to its original, pre-dedup titles (see the
    revert-legacy section above). If it still needs disambiguating, do it via
    the current `apply` command so a change-log gets written this time.
-3. Pick another collection from the remaining 12 (see `spec.md`'s Further
-   Notes for the group/collection breakdown from the original scan), decide
+3. Pick another collection from the `.md` list, decide
    its `suffix` label, and run `apply -dry-run` against it to sanity-check
    output before a real run.
 4. Nothing has been pushed to remote per standing instructions — push /
