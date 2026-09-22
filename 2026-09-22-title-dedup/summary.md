@@ -87,3 +87,64 @@ request to a working implementation.
 - No `mattpocock-skills` issue tracker is configured for this project, so
   `spec.md` is a local file only, not published anywhere.
 - Nothing pushed to remote per standing instructions; push/PR on request.
+
+## Continuation: collection_identifier field + scoped rollback
+
+Same day, later in the session, the user asked for two follow-up changes to
+the `apply`/`rollback` work above.
+
+1. **"Refactor this application so that the collection's identifier field
+   is included in the records array entries. `parent_collection` should be
+   renamed `collection_id` and store the collection.id, and
+   collection.identifier should be written to a `collection_identifier`
+   field."**
+   - Renamed `Record.ParentCollection` (`json:"parent_collection"`) to
+     `Record.CollectionID` (`json:"collection_id"`) — unchanged meaning,
+     still the raw DynamoDB collection key from the Archive item's
+     `parent_collection` attribute.
+   - Added `Record.CollectionIdentifier` (`json:"collection_identifier"`),
+     resolved at `report` time from a new `collection_table_name` config
+     setting via a new `buildCollectionIndex` scan (id -> identifier map),
+     required for `report` (fails fast if unset).
+   - **Design decision confirmed with the user first**: `apply`'s
+     `-collection_identifier` flag previously matched against the raw
+     collection id (a latent naming mismatch — the flag was always called
+     `collection_identifier`). Asked whether it should now match the new,
+     correctly-named `collection_identifier` field instead of `collection_id`
+     — user chose yes. `planApply` and its `Job` struct were updated
+     accordingly (`Job` now also carries `CollectionID`/`CollectionIdentifier`
+     through to the change-log).
+   - Wrote `README.md` for the tool (didn't previously exist) documenting
+     config, the report/record JSON shape, and all three commands.
+2. **"rollback should be scoped to one collection, just like apply."**
+   - `planRollback` gained a `collectionIdentifier` parameter and now skips
+     records whose `collection_identifier` doesn't match, exactly like
+     `planApply`.
+   - `runRollback` gained a `-collection_identifier` flag (falls back to
+     `config.yaml`, required — errors out if neither is set), and the
+     "no records found" message now names the collection scope.
+   - Updated `README.md`'s rollback section and workflow example to match.
+
+`main_test.go` was updated for both changes (new/renamed struct fields in
+existing tests, a `TestPlanRollback_SkipsRecordsWithNoCollectionIdentifier`
+test, `TestPlanRollback_RestoresRecordedOriginalOnlyForMatchingCollection`
+replacing the old regardless-of-collection test). `go build`, `go vet`, and
+`go test ./...` pass after each change.
+
+### Commits (not pushed)
+
+- `7e587ac` — Add collection_identifier to report records; rename
+  parent_collection to collection_id
+- `de754e0` — Add README documenting report/apply/rollback commands
+- `ab62635` — Scope rollback to one collection, like apply
+
+### Not yet done / caveats (continuation)
+
+- Same as above: `output/duplicate_titles.json` must be regenerated via
+  `report` before any real `apply`/`rollback` — it now also needs
+  `collection_table_name` set in `config.yaml`, which wasn't required
+  before this continuation.
+- No collection has been applied against DynamoDB with the new field names;
+  only `go test`/`go build`/`go vet` have been run, no live AWS smoke test
+  in this continuation.
+- Nothing pushed to remote per standing instructions; push/PR on request.

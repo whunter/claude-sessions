@@ -6,16 +6,21 @@
 three subcommands:
 
 - `report` — scans the `Archive` table, writes a JSON report of every title
-  shared by 2+ records (unchanged from earlier today, except the scan now
-  also projects each record's DynamoDB primary key, `id` — see below).
-- `apply` — disambiguates one collection's duplicate titles at a time.
-- `rollback` — restores titles recorded in a `report` or `apply` change-log.
+  shared by 2+ records. Also resolves each record's parent collection id to
+  the collection's human-readable identifier, via a new `collection_table_name`
+  scan.
+- `apply` — disambiguates one collection's duplicate titles at a time,
+  matched by the collection's `collection_identifier` (not its raw id).
+- `rollback` — restores titles recorded in a `report` or `apply`
+  change-log, scoped to one collection at a time, same as `apply`.
 
-Full design rationale lives in `spec.md` in this same directory (produced via
-`/mattpocock-skills:grill-me` + `/mattpocock-skills:to-spec` this session).
-It has not been published to an issue tracker — no
-`mattpocock-skills` tracker/triage-label config exists for this project yet;
-run `/setup-matt-pocock-skills` if that's wanted later.
+Full design rationale for the original apply/rollback build lives in
+`spec.md` in this same directory (produced via `/mattpocock-skills:grill-me`
++ `/mattpocock-skills:to-spec`). It has not been published to an issue
+tracker — no `mattpocock-skills` tracker/triage-label config exists for this
+project yet; run `/setup-matt-pocock-skills` if that's wanted later. The
+`README.md` in the tool's own directory is the up-to-date reference for
+usage; this file is a narrower "what changed / what's next" note.
 
 ## Commands
 
@@ -26,31 +31,35 @@ archive-title-dedup report -config config.yaml
 # 2. Preview one collection's renames (no writes)
 archive-title-dedup apply -config config.yaml \
   -input output/duplicate_titles.json \
-  -collection_identifier <uuid> -suffix Map -dry-run
+  -collection_identifier FCHS_OBJ -suffix Map -dry-run
 
 # 3. Apply for real -- writes title in DynamoDB and a change-log
 archive-title-dedup apply -config config.yaml \
   -input output/duplicate_titles.json \
-  -collection_identifier <uuid> -suffix Map
-# -> output/changelog_<uuid>_<timestamp>.json
+  -collection_identifier FCHS_OBJ -suffix Map
+# -> output/changelog_FCHS_OBJ_<timestamp>.json
 
-# 4. Undo, from either the change-log or the original report
-archive-title-dedup rollback -config config.yaml output/changelog_<uuid>_<timestamp>.json
+# 4. Undo, scoped to the same collection, from either the change-log or the
+#    original report
+archive-title-dedup rollback -config config.yaml \
+  -collection_identifier FCHS_OBJ \
+  output/changelog_FCHS_OBJ_<timestamp>.json
 ```
 
 `-collection_identifier` / `-suffix` fall back to `config.yaml` fields of the
-same name if the flags are omitted.
+same name if the flags are omitted, on both `apply` and `rollback`.
 
 ## Config (`config.yaml`)
 
 ```yaml
 region: us-east-1
 table_name: Archive-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev
+collection_table_name: Collection-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev  # required for `report`
 output_dir: output
 output_file: duplicate_titles.json
 concurrency: 10
-# optional fallbacks for apply's flags:
-# collection_identifier: <uuid>
+# optional fallbacks for apply/rollback's -collection_identifier and apply's -suffix:
+# collection_identifier: FCHS_OBJ
 # suffix: Map
 ```
 
@@ -58,7 +67,7 @@ concurrency: 10
 
 ```json
 {
-  "collection_identifier": "11783a71-...",   // only set in a change-log
+  "collection_identifier": "FCHS_OBJ",       // only set in a change-log
   "timestamp": "20260922T153000Z",           // only set in a change-log
   "duplicates": [
     {
@@ -67,7 +76,8 @@ concurrency: 10
         {
           "id": "2bcd8e4f-...",              // DynamoDB primary key
           "identifier": "nmcst005196",
-          "parent_collection": "11783a71-...",
+          "collection_id": "11783a71-...",   // parent collection's DynamoDB id
+          "collection_identifier": "FCHS_OBJ", // parent collection's human-readable identifier
           "new_title": "1957 Coeburn Quadrangle Virginia - Map:nmcst005196" // only in a change-log
         }
       ]
@@ -76,24 +86,54 @@ concurrency: 10
 }
 ```
 
-## Important: regenerate `output/duplicate_titles.json` before using `apply`
+`collection_id`/`collection_identifier` are `null` on a record with no
+parent collection, or if the collection id wasn't found in the collection
+table at scan time.
 
-The table's actual DynamoDB partition key is `id` (a separate UUID from the
-business `identifier` field) — confirmed via `aws dynamodb describe-table`.
-The scan wasn't projecting it until this session, so **any existing
-`output/duplicate_titles.json` from before this change has empty `id`
-fields** and cannot be used for a real `apply`/`rollback` write (only for
-`-dry-run`, which doesn't need the key). Run `report` again first.
+## What changed in this continuation session
+
+Picked up after the original `report`/`apply`/`rollback` build (see
+`summary.md`'s first section) to fix two follow-up gaps the user flagged:
+
+1. **Records now carry the collection's identifier, not just its id.**
+   `parent_collection` was renamed to `collection_id` (still the raw
+   DynamoDB collection key), and a new `collection_identifier` field was
+   added, resolved from a new `collection_table_name` config setting that
+   `report` scans once up front (`buildCollectionIndex`). `apply`'s
+   `-collection_identifier` flag now matches against this resolved
+   identifier instead of the raw collection id — this fixes a pre-existing
+   naming mismatch (the flag was always called `collection_identifier` but
+   used to compare against the raw id) and was confirmed with the user
+   before making the behavior change.
+2. **`rollback` is now scoped to one collection, like `apply`.** It
+   previously reverted every record in the given file unconditionally.
+   It now takes the same `-collection_identifier` flag (with the same
+   `config.yaml` fallback) and only reverts matching records.
+
+`README.md` in the tool's directory and `main_test.go` were updated to
+match; `go build`/`go vet`/`go test ./...` all pass.
+
+## Important: regenerate `output/duplicate_titles.json` before using `apply`/`rollback`
+
+Any `duplicate_titles.json` from before this session's changes has no
+`collection_identifier` field, so nothing in it will match `apply` or
+`rollback`'s `-collection_identifier` flag. Run `report` again first (this
+also requires `collection_table_name` to be set in `config.yaml`, which it
+wasn't before this session).
 
 ## Next steps for whoever picks this up
 
-1. Re-run `report` to get a fresh `duplicate_titles.json` with `id` populated.
-2. Pick one collection from the 13 present (see `spec.md`'s Further Notes for
-   the current group/collection breakdown), decide its `suffix` label, and
-   run `apply -dry-run` against it to sanity-check output before a real run.
+1. Set `collection_table_name` in `config.yaml` if not already done, and
+   re-run `report` to get a fresh `duplicate_titles.json` with
+   `collection_id`/`collection_identifier` populated.
+2. Pick one collection from the 13 present (see `spec.md`'s Further Notes
+   for the group/collection breakdown from the original scan), decide its
+   `suffix` label, and run `apply -dry-run` against it to sanity-check
+   output before a real run.
 3. Nothing has been pushed to remote per standing instructions — push /
    open a PR on request.
-4. `main_test.go` covers `planApply`/`planRollback` (the pure seam) directly;
-   the DynamoDB read/write paths (`scanSegment`, `writeJobs`) are exercised
-   via dry-run/manual runs against the dev table, not unit-tested — this
-   matches the testing approach agreed in `spec.md`.
+4. `main_test.go` covers `planApply`/`planRollback` (the pure seam)
+   directly; the DynamoDB read/write paths (`scanSegment`, `writeJobs`,
+   `buildCollectionIndex`) are exercised via dry-run/manual runs against the
+   dev table, not unit-tested — this matches the testing approach agreed in
+   `spec.md`.
