@@ -3,7 +3,7 @@
 ## Where things stand
 
 `vtdlp-aws-tools/go/archive-title-dedup` on branch `fix-duplicates` now has
-three subcommands:
+four subcommands:
 
 - `report` — scans the `Archive` table, writes a JSON report of every title
   shared by 2+ records. Also resolves each record's parent collection id to
@@ -13,6 +13,10 @@ three subcommands:
   matched by the collection's `collection_identifier` (not its raw id).
 - `rollback` — restores titles recorded in a `report` or `apply`
   change-log, scoped to one collection at a time, same as `apply`.
+- `revert-legacy` — restores titles for a collection that was disambiguated
+  by the *pre-`apply`* version of this tool, where no report or change-log
+  exists to roll back from. Used this session to undo a real `vtec`
+  collection run (see "What changed in this continuation session" below).
 
 Full design rationale for the original apply/rollback build lives in
 `spec.md` in this same directory (produced via `/mattpocock-skills:grill-me`
@@ -44,6 +48,14 @@ archive-title-dedup apply -config config.yaml \
 archive-title-dedup rollback -config config.yaml \
   -collection_identifier FCHS_OBJ \
   output/changelog_FCHS_OBJ_<timestamp>.json
+
+# 5. Undo a pre-apply-era run with no report/change-log: re-derives originals
+#    straight from the live table by stripping "<suffix>-<index>" off titles
+#    that still have it
+archive-title-dedup revert-legacy -config config.yaml \
+  -collection_identifier vtec -suffix ": Specimen" -dry-run
+archive-title-dedup revert-legacy -config config.yaml \
+  -collection_identifier vtec -suffix ": Specimen"
 ```
 
 `-collection_identifier` / `-suffix` fall back to `config.yaml` fields of the
@@ -122,6 +134,30 @@ Picked up after the original `report`/`apply`/`rollback` build (see
 `README.md` in the tool's directory and `main_test.go` were updated to
 match; `go build`/`go vet`/`go test ./...` all pass.
 
+## What changed in this second continuation session
+
+The user had already run `apply` against the `vtec` collection with
+`-suffix Specimen` using an *older* build of this tool (predating this
+repo's `apply`/`rollback` commands — see git log for the pre-rewrite
+commits, e.g. `4817ce1`), and no longer had the input report/change-log
+needed for `rollback`. That old algorithm wrote
+`<original title><suffix>-<zero-padded index>` directly with no audit
+trail, unlike the current `apply`, which always writes a change-log.
+
+Added `revert-legacy` (`main.go`): scans the live `Archive` table for
+records in the given collection, matches titles against
+`^(.*)<suffix>-\d+$`, and restores the captured original. No input file
+needed — it works entirely from the live table's current state. Verified
+via `-dry-run` first (2,239 matches, all correctly formed), then ran for
+real: **2,239/2,239 `vtec` records reverted**, confirmed clean with a
+follow-up `-dry-run` (zero remaining matches). Added
+`TestPlanRevertLegacy_StripsSuffixAndIndex` to `main_test.go` and a
+`revert-legacy` section to `README.md`.
+
+This is a one-way trip in the sense that there's no change-log of *this*
+revert — if `vtec` needs to be re-disambiguated, use the current `apply`
+command, which will produce one.
+
 ## Important: regenerate `output/<timestamp>_duplicate_titles.json` before using `apply`/`rollback`
 
 Any report file from before this session's `collection_identifier` change
@@ -135,14 +171,18 @@ which it wasn't before this session).
 1. Set `collection_table_name` in `config.yaml` if not already done, and
    re-run `report` to get a fresh, timestamped `duplicate_titles.json` with
    `collection_id`/`collection_identifier` populated.
-2. Pick one collection from the 13 present (see `spec.md`'s Further Notes
-   for the group/collection breakdown from the original scan), decide its
-   `suffix` label, and run `apply -dry-run` against it to sanity-check
+2. `vtec` is now back to its original, pre-dedup titles (see the
+   revert-legacy section above). If it still needs disambiguating, do it via
+   the current `apply` command so a change-log gets written this time.
+3. Pick another collection from the remaining 12 (see `spec.md`'s Further
+   Notes for the group/collection breakdown from the original scan), decide
+   its `suffix` label, and run `apply -dry-run` against it to sanity-check
    output before a real run.
-3. Nothing has been pushed to remote per standing instructions — push /
+4. Nothing has been pushed to remote per standing instructions — push /
    open a PR on request.
-4. `main_test.go` covers `planApply`/`planRollback` (the pure seam)
-   directly; the DynamoDB read/write paths (`scanSegment`, `writeJobs`,
-   `buildCollectionIndex`) are exercised via dry-run/manual runs against the
-   dev table, not unit-tested — this matches the testing approach agreed in
-   `spec.md`.
+5. `main_test.go` covers `planApply`/`planRollback`/`planRevertLegacy` (the
+   pure seams) directly; the DynamoDB read/write paths (`scanSegment`,
+   `writeJobs`, `buildCollectionIndex`, `scanCollectionTitles`,
+   `collectionIDForIdentifier`) are exercised via dry-run/manual runs against
+   the dev table, not unit-tested — this matches the testing approach agreed
+   in `spec.md`.

@@ -168,3 +168,55 @@ pass after each change.
   or timestamped filenames; only `go test`/`go build`/`go vet` have been
   run, no live AWS smoke test in this continuation.
 - Nothing pushed to remote per standing instructions; push/PR on request.
+
+## Continuation 2: revert-legacy for the vtec collection
+
+Same day, a new session. The user had run `apply` against the `vtec`
+collection (`-suffix Specimen`) using an older build of this tool from
+before `apply`/`rollback` existed, and had no input report or change-log
+left to roll back from.
+
+1. **Reconstructed the old algorithm from git history** rather than
+   guessing: walked the commits before `2afd9f4` (which introduced the
+   current `apply`/`rollback`), specifically `4817ce1` ("Zero-pad title
+   index by group size"), and confirmed the old format was
+   `<original title><suffix>-<zero-padded index>` (e.g.
+   `"Foo: Sample-01"`), with the colon-space living inside the `suffix`
+   config value itself, not in the code. This matched the substring the
+   user described wanting removed (`": Specimen-<index>"`).
+2. **Added a `revert-legacy` command** (`planRevertLegacy`,
+   `scanCollectionTitles`, `collectionIDForIdentifier` in `main.go`) that
+   works entirely off the live table — no report/change-log input needed.
+   It resolves `vtec`'s collection id from the collection table, scans
+   `Archive` for records under that collection id, regex-matches each
+   live title against `^(.*)<suffix>-\d+$`, and plans restoring the
+   captured group. Supports `-dry-run` like the other commands.
+3. **Verified before writing**: ran `-dry-run` first (2,239 matches, titles
+   all looked correct, e.g. `"Limenitidinae: Specimen-13" ->
+   "Limenitidinae"`), confirmed with the user via `AskUserQuestion` before
+   the live DynamoDB write (this mutates production-like data with no
+   change-log safety net), then ran for real.
+4. **Result**: 2,239/2,239 `vtec` records reverted. A follow-up `-dry-run`
+   confirms zero remaining matches for that suffix in that collection.
+5. Added `TestPlanRevertLegacy_StripsSuffixAndIndex` to `main_test.go` and
+   documented `revert-legacy` in `README.md`. `go build`/`go vet`/
+   `go test ./...` all pass.
+
+### Key files (continuation 2)
+
+- `main.go` — new `revert-legacy` command, `collectionIDForIdentifier`,
+  `scanCollectionTitles`, `legacySuffixPattern`, `planRevertLegacy`.
+- `main_test.go` — `TestPlanRevertLegacy_StripsSuffixAndIndex`.
+- `README.md` — new `revert-legacy` section.
+
+### Commits (not pushed)
+
+- `26d2062` — Add revert-legacy command to undo pre-apply-era title
+  disambiguation
+
+### Not yet done / caveats (continuation 2)
+
+- The 2,239-record `vtec` revert has no change-log of its own — if `vtec`
+  needs to be re-disambiguated, use the current `apply` command so a
+  proper change-log gets written this time.
+- Nothing pushed to remote per standing instructions; push/PR on request.
