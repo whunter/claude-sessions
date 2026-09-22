@@ -132,12 +132,21 @@ the `apply`/`rollback` work above.
    match; no logic change needed since the seam under test
    (`planApply`/`planRollback`) just echoes whatever format string
    `main.go` builds.
+4. **"prepend a timestamp to the filename specified in
+   config.yaml:output_file"** — `runReport` now builds the report path as
+   `<output_dir>/<timestamp>_<output_file>`, timestamp formatted
+   `20060102T150405Z` (UTC), matching the format already used for
+   change-log filenames, so successive `report` runs no longer overwrite
+   each other. Updated `README.md`'s `report` section, its usage examples,
+   and the typical-workflow section to use the timestamped filename.
 
-`main_test.go` was updated for all three changes (new/renamed struct fields
-in existing tests, a `TestPlanRollback_SkipsRecordsWithNoCollectionIdentifier`
+`main_test.go` was updated for changes 1–3 (new/renamed struct fields in
+existing tests, a `TestPlanRollback_SkipsRecordsWithNoCollectionIdentifier`
 test, `TestPlanRollback_RestoresRecordedOriginalOnlyForMatchingCollection`
 replacing the old regardless-of-collection test, and the colon-space fix).
-`go build`, `go vet`, and `go test ./...` pass after each change.
+Change 4 touches only `runReport`'s glue code (no pure seam involved), so no
+test changes were needed there. `go build`, `go vet`, and `go test ./...`
+pass after each change.
 
 ### Commits (not pushed)
 
@@ -146,14 +155,16 @@ replacing the old regardless-of-collection test, and the colon-space fix).
 - `de754e0` — Add README documenting report/apply/rollback commands
 - `ab62635` — Scope rollback to one collection, like apply
 - `8322a27` — Add space after colon in disambiguated title suffix
+- `1069d98` — Prepend UTC timestamp to report's output_file so runs don't
+  overwrite each other
 
 ### Not yet done / caveats (continuation)
 
-- Same as above: `output/duplicate_titles.json` must be regenerated via
-  `report` before any real `apply`/`rollback` — it now also needs
-  `collection_table_name` set in `config.yaml`, which wasn't required
+- Same as above: a fresh, timestamped `duplicate_titles.json` must be
+  generated via `report` before any real `apply`/`rollback` — it now also
+  needs `collection_table_name` set in `config.yaml`, which wasn't required
   before this continuation.
-- No collection has been applied against DynamoDB with the new field names;
-  only `go test`/`go build`/`go vet` have been run, no live AWS smoke test
-  in this continuation.
+- No collection has been applied against DynamoDB with the new field names
+  or timestamped filenames; only `go test`/`go build`/`go vet` have been
+  run, no live AWS smoke test in this continuation.
 - Nothing pushed to remote per standing instructions; push/PR on request.

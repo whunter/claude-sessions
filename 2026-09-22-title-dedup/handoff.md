@@ -25,17 +25,17 @@ usage; this file is a narrower "what changed / what's next" note.
 ## Commands
 
 ```sh
-# 1. Scan and write output/duplicate_titles.json
+# 1. Scan and write output/<timestamp>_duplicate_titles.json
 archive-title-dedup report -config config.yaml
 
 # 2. Preview one collection's renames (no writes)
 archive-title-dedup apply -config config.yaml \
-  -input output/duplicate_titles.json \
+  -input output/<timestamp>_duplicate_titles.json \
   -collection_identifier FCHS_OBJ -suffix Map -dry-run
 
 # 3. Apply for real -- writes title in DynamoDB and a change-log
 archive-title-dedup apply -config config.yaml \
-  -input output/duplicate_titles.json \
+  -input output/<timestamp>_duplicate_titles.json \
   -collection_identifier FCHS_OBJ -suffix Map
 # -> output/changelog_FCHS_OBJ_<timestamp>.json
 
@@ -56,7 +56,7 @@ region: us-east-1
 table_name: Archive-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev
 collection_table_name: Collection-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev  # required for `report`
 output_dir: output
-output_file: duplicate_titles.json
+output_file: duplicate_titles.json  # report writes <output_dir>/<timestamp>_<output_file>
 concurrency: 10
 # optional fallbacks for apply/rollback's -collection_identifier and apply's -suffix:
 # collection_identifier: FCHS_OBJ
@@ -113,22 +113,27 @@ Picked up after the original `report`/`apply`/`rollback` build (see
    suffix format is `<original title> - <suffix>: <record identifier>`
    (was `<suffix>:<identifier>`, no space). User made this edit directly in
    `main.go`; tests and README were updated to match.
+4. **`report`'s output filename is now timestamped.** It writes
+   `<output_dir>/<timestamp>_<output_file>` (UTC `YYYYMMDDTHHMMSSZ`, same
+   format as the change-log timestamp) instead of always overwriting
+   `<output_dir>/<output_file>`, so successive `report` runs don't clobber
+   each other.
 
 `README.md` in the tool's directory and `main_test.go` were updated to
 match; `go build`/`go vet`/`go test ./...` all pass.
 
-## Important: regenerate `output/duplicate_titles.json` before using `apply`/`rollback`
+## Important: regenerate `output/<timestamp>_duplicate_titles.json` before using `apply`/`rollback`
 
-Any `duplicate_titles.json` from before this session's changes has no
-`collection_identifier` field, so nothing in it will match `apply` or
-`rollback`'s `-collection_identifier` flag. Run `report` again first (this
-also requires `collection_table_name` to be set in `config.yaml`, which it
-wasn't before this session).
+Any report file from before this session's `collection_identifier` change
+has no `collection_identifier` field, so nothing in it will match `apply`
+or `rollback`'s `-collection_identifier` flag. Run `report` again first
+(this also requires `collection_table_name` to be set in `config.yaml`,
+which it wasn't before this session).
 
 ## Next steps for whoever picks this up
 
 1. Set `collection_table_name` in `config.yaml` if not already done, and
-   re-run `report` to get a fresh `duplicate_titles.json` with
+   re-run `report` to get a fresh, timestamped `duplicate_titles.json` with
    `collection_id`/`collection_identifier` populated.
 2. Pick one collection from the 13 present (see `spec.md`'s Further Notes
    for the group/collection breakdown from the original scan), decide its
