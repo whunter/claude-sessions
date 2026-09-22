@@ -124,12 +124,20 @@ the `apply`/`rollback` work above.
      `config.yaml`, required — errors out if neither is set), and the
      "no records found" message now names the collection scope.
    - Updated `README.md`'s rollback section and workflow example to match.
+3. **"I added a space between the ':' and the `<identifier>` in the
+   newTitle format. update the tests to reflect this change."** The user
+   edited `main.go` directly (`fmt.Sprintf("%s - %s: %s", ...)`, was
+   `"%s - %s:%s"`). Updated `main_test.go`'s expected `NewTitle` values and
+   `README.md`'s format description (`<suffix>: <record identifier>`) to
+   match; no logic change needed since the seam under test
+   (`planApply`/`planRollback`) just echoes whatever format string
+   `main.go` builds.
 
-`main_test.go` was updated for both changes (new/renamed struct fields in
-existing tests, a `TestPlanRollback_SkipsRecordsWithNoCollectionIdentifier`
+`main_test.go` was updated for all three changes (new/renamed struct fields
+in existing tests, a `TestPlanRollback_SkipsRecordsWithNoCollectionIdentifier`
 test, `TestPlanRollback_RestoresRecordedOriginalOnlyForMatchingCollection`
-replacing the old regardless-of-collection test). `go build`, `go vet`, and
-`go test ./...` pass after each change.
+replacing the old regardless-of-collection test, and the colon-space fix).
+`go build`, `go vet`, and `go test ./...` pass after each change.
 
 ### Commits (not pushed)
 
@@ -137,6 +145,7 @@ replacing the old regardless-of-collection test). `go build`, `go vet`, and
   parent_collection to collection_id
 - `de754e0` — Add README documenting report/apply/rollback commands
 - `ab62635` — Scope rollback to one collection, like apply
+- `8322a27` — Add space after colon in disambiguated title suffix
 
 ### Not yet done / caveats (continuation)
 

@@ -78,7 +78,7 @@ concurrency: 10
           "identifier": "nmcst005196",
           "collection_id": "11783a71-...",   // parent collection's DynamoDB id
           "collection_identifier": "FCHS_OBJ", // parent collection's human-readable identifier
-          "new_title": "1957 Coeburn Quadrangle Virginia - Map:nmcst005196" // only in a change-log
+          "new_title": "1957 Coeburn Quadrangle Virginia - Map: nmcst005196" // only in a change-log
         }
       ]
     }
@@ -109,6 +109,10 @@ Picked up after the original `report`/`apply`/`rollback` build (see
    previously reverted every record in the given file unconditionally.
    It now takes the same `-collection_identifier` flag (with the same
    `config.yaml` fallback) and only reverts matching records.
+3. **Disambiguated title format now has a space after the colon.** The
+   suffix format is `<original title> - <suffix>: <record identifier>`
+   (was `<suffix>:<identifier>`, no space). User made this edit directly in
+   `main.go`; tests and README were updated to match.
 
 `README.md` in the tool's directory and `main_test.go` were updated to
 match; `go build`/`go vet`/`go test ./...` all pass.
