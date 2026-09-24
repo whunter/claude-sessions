@@ -58,7 +58,7 @@ unstaged, per this repo's "only commit when explicitly asked" convention.
 ### Full suite (this is now the standard way to run tests — no live
 backend or AWS login required):
 ```
-npm run start-dlp &            # serves the frontend at localhost:3000
+npm run start-dlp &
 npx cypress run --spec "cypress/e2e/integration/**/*.cy.js" --headless --browser electron
 CYPRESS_API_TEST_ONLY=true npx cypress run --spec "cypress/e2e/api/**/*.cy.js" --headless --browser electron
 ```
