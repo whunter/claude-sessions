@@ -1,14 +1,16 @@
 # How the CDK scripts work: one command, traced end to end
 
-This lesson follows a single command through every program it touches, from the moment you press Enter to a request landing on DynamoDB. Every file reference is relative to the repo root, `~/dev/dlp/access/dlp-access-next-cdk`. The command outputs and template excerpts are real: they were produced by running the commands against branch `whunter/multi-env` at `c9e6b85`, and updated for the `-c account` flag added in `b63f444`. Account IDs are shown as `<account>`.
+This lesson follows a single command through every program it touches, from the moment you press Enter to a request landing on DynamoDB. Every file reference is relative to the repo root, `~/dev/dlp/access/dlp-access-next-cdk`. The command outputs and template excerpts are real: they were produced by running the commands against branch `whunter/multi-env` at `c9e6b85`, and updated through `3e556bd`: the `-c account` flag, the `-c production` sizing flag, and the `npm run deploy` confirmation step. Account IDs are shown as `<account>`.
 
 The command we trace is the largest one, the one that provisions a feature environment and a branch deployment together:
 
 ```bash
 cd infra
 ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-npx cdk deploy --all -c env=f-search -c account=$ACCOUNT -c branch=whunter/multi-env -c backend=provision
+npm run deploy -- -c env=f-search -c account=$ACCOUNT -c branch=whunter/multi-env -c backend=provision
 ```
+
+`npm run deploy` checks the options and asks you to confirm (Step 0), then runs `npx cdk deploy --all` with the same arguments. From Step 1 on, that `cdk deploy` is what we follow.
 
 The other modes are subsets of this one. They're covered in [Step 11](#step-11-the-other-modes).
 
@@ -16,10 +18,12 @@ The other modes are subsets of this one. They're covered in [Step 11](#step-11-t
 
 ## The big picture
 
-Five separate programs take part, and each one hands its output to the next:
+Five separate programs take part, and each one hands its output to the next. A confirmation script runs first:
 
 ```
- you ──► (1) cdk CLI ──spawns──► (2) your TypeScript app (bin/appsync.ts)
+ you ──► (0) npm run deploy: validate, show, ask ── "y"/"yes" ──┐
+                                                                │
+         (1) cdk CLI ──spawns──► (2) your TypeScript app (bin/appsync.ts)
                                         │  builds objects in memory, writes
                                         ▼  JSON files; never talks to AWS
                                   infra/cdk.out/  (templates + assets + manifest)
@@ -38,6 +42,7 @@ Five separate programs take part, and each one hands its output to the next:
 
 The most important idea in CDK is the split between **synth time** and **deploy time**.
 
+- **Step 0** runs before either. It uses the same validation code as the app, but builds no stacks.
 - **Synth time** is steps 1 and 2. Your TypeScript runs on your laptop and produces CloudFormation JSON. It has no AWS credentials (it doesn't need any) and it can't see anything that exists in AWS yet.
 - **Deploy time** is steps 3 to 5. AWS reads that JSON and makes it real.
 
@@ -48,9 +53,45 @@ Many CDK puzzles make sense once you ask which side of that line something happe
 
 ---
 
+## Step 0: `npm run deploy` confirms before anything runs
+
+`infra/package.json` maps `deploy` to `ts-node --prefer-ts-exts bin/deploy.ts`. Everything after `--` reaches the script as arguments. The script (`infra/bin/deploy.ts`, with the testable parts in `infra/lib/deploy.ts`) does five things:
+
+1. **Collects the context arguments.** `contextFromArgs` picks out every `-c key=value`, `--context key=value` and `--context=key=value`, ignoring other flags. It splits at the first `=`, so a value may contain `=`.
+2. **Adds `cdk.json`'s context underneath**, so it sees what the app will see (Step 1). `-c` values win.
+3. **Validates, with the app's own code.** `optionsFromContext` and `planApp` (Steps 3 and 4) run exactly as they will inside the app, but no stacks are built. Bad options fail here, before you're asked anything:
+
+   ```
+   $ npm run deploy -- -c env=dev -c account=123
+   Invalid account "123": use a 12-digit AWS account ID
+   ```
+
+4. **Shows the plan and asks.** `describePlan` prints every option with its default applied, and the stacks those options produce:
+
+   ```
+   About to deploy to AWS:
+
+     Environment      f-search
+     Account          <account>
+     Region           us-east-1
+     Production       false (search: 1 x t3.small.search across 1 AZ; web: t3.small)
+     Branch           whunter-multi-env
+     Backend          provision
+     Data on destroy  destroy
+     Stacks           DlpAccessNext-f-search-Data, DlpAccessNext-f-search-Api, DlpAccessNext-Web-whunter-multi-env
+
+   Deploy? Type "yes" or "y" to continue:
+   ```
+
+   With `-c env=production`, `productionWarning` prints a bold red banner first, naming the account so you can check it's the production account. It also says so when `-c production=true` is missing, which would give production the small sizing. The question becomes "Deploy to PRODUCTION?".
+
+5. **Deploys only on `y` or `yes`.** `isConfirmed` accepts those in any case, ignoring surrounding spaces. Anything else (`n`, `yep`, an empty line, or stdin closing) prints "Not deployed." and exits 1. On yes, it runs `npx cdk deploy --all <your arguments>` with its own terminal handed over, and exits with `cdk`'s exit code.
+
+**Why the prompt isn't in the CDK app.** The CLI runs the app with stdin closed (Step 2), so the app can't read an answer. The app also runs for `synth`, `ls`, `diff` and `destroy`, where a deploy prompt would be wrong. The cost is that `npx cdk deploy` run directly skips the confirmation.
+
 ## Step 1: the `cdk` CLI reads `infra/cdk.json`
 
-`npx cdk` runs the CLI from `infra/node_modules/aws-cdk`, the `aws-cdk` devDependency in `infra/package.json`. The first thing it does is look in the current directory for `cdk.json`. That lookup is why every command must be run from `infra/`; from anywhere else you get "`--app is required`".
+The `npx cdk` that Step 0 started runs the CLI from `infra/node_modules/aws-cdk`, the `aws-cdk` devDependency in `infra/package.json`. The first thing it does is look in the current directory for `cdk.json`. That lookup is why every command must be run from `infra/`; from anywhere else you get "`--app is required`".
 
 `infra/cdk.json` has two parts that matter.
 
@@ -75,16 +116,17 @@ Then the CLI merges your `-c key=value` flags into that same bag. For our comman
 ```
 env      = "f-search"
 account  = "<account>"      (the 12-digit ID in $ACCOUNT)
+                             (no production: it defaults to false)
 branch   = "whunter/multi-env"
 backend  = "provision"
 + the feature flags from cdk.json
 ```
 
-> `-c` is just "add a context value". CDK gives `env`, `account`, `branch` and `backend` no special meaning; this project's own code interprets them (Step 3).
+> `-c` is just "add a context value". CDK gives `env`, `account`, `production`, `branch` and `backend` no special meaning; this project's own code interprets them (Step 3).
 
 ## Step 2: the CLI spawns your app
 
-The CLI runs the `app` command as a **child process**. It passes two things through environment variables:
+The CLI runs the `app` command as a **child process**, with stdin closed, so the app can never prompt. It passes two things through environment variables:
 
 - `CDK_CONTEXT_JSON`: the merged context from Step 1.
 - `CDK_OUTDIR`: where to write output, which is `infra/cdk.out` by default or the path given with `-o`.
@@ -101,32 +143,38 @@ npx ts-node --prefer-ts-exts bin/appsync.ts: Subprocess exited with error 1
 
 ```ts
 const app = new cdk.App();
-const context = (key: string) => app.node.tryGetContext(key);
-buildApp(app, {
-  env: context('env'),
-  account: context('account'),
-  branch: context('branch'),
-  backend: context('backend'),
-});
+buildApp(app, optionsFromContext((key) => app.node.tryGetContext(key)));
 ```
 
 1. `new cdk.App()` creates the **root of the construct tree**. It reads `CDK_CONTEXT_JSON` and `CDK_OUTDIR`. It also registers a hook that runs `app.synth()` automatically when the Node process is about to exit. That's why no file ever calls `synth()`.
-2. `tryGetContext` reads one key from the context, returning `undefined` if it isn't set. It's the only place the `-c` flags enter the code.
-3. `buildApp` does the real work. It lives in `infra/lib/app.ts` rather than in `bin/` so the Jest tests can call it directly with plain arguments (Step 12).
+2. `tryGetContext` reads one key from the context, returning `undefined` if it isn't set. It's the only place the `-c` flags enter the app.
+3. `optionsFromContext` (`infra/lib/app.ts`) turns the context into an `AppOptions` object. Every value arrives as a string, because `-c production=true` gives the string `"true"`. So `production` goes through `booleanContext`, which accepts `true`/`false` as strings or booleans and throws on anything else (`-c production=yes` fails). Step 0 calls the same function with its own lookup, which is how the two parse options identically.
+4. `buildApp` does the real work. It lives in `infra/lib/app.ts` rather than in `bin/` so the Jest tests can call it directly with plain arguments (Step 12).
 
-## Step 4: `buildApp` decides which stacks exist (`infra/lib/app.ts:34`)
+## Step 4: `planApp` and `buildApp` decide which stacks exist (`infra/lib/app.ts`)
+
+`buildApp` starts by calling `planApp(options)`, which does all the validation and works out the stack names without building anything. That split is what lets Step 0 show you the plan. Steps 4a to 4c are `planApp`; 4d is `buildApp`.
 
 ### 4a. Resolve the environment and account
 
 ```ts
-const config = resolveEnvironment(options.env);
+const production = options.production ?? false;
+const config = resolveEnvironment(options.env, production);
 ```
 
-`resolveEnvironment` (`infra/lib/environments.ts`) turns the string `"f-search"` into an `EnvironmentConfig` object:
+`resolveEnvironment` (`infra/lib/environments.ts`) turns the string `"f-search"` and the `production` flag into an `EnvironmentConfig` object:
 
 1. **Missing?** It throws "Missing CDK context".
 2. **Bad shape?** The name must match `/^[a-z][a-z0-9-]{0,19}$/`. The 20-character limit exists because the OpenSearch domain is `dlpnext-<env>` and domain names max out at 28 characters.
-3. **Lookup**: `dev`, `pre-production` and `production` are entries in `ENVIRONMENTS`. Anything starting with `f-` gets the `FEATURE` settings, which are dev's settings with `removalPolicy: DESTROY`. Anything else throws "Unknown environment".
+3. **Lookup**: `dev`, `pre-production` and `production` are entries in `ENVIRONMENTS`. Anything starting with `f-` gets the `FEATURE` settings, which are dev's settings with `removalPolicy: DESTROY`. Anything else throws "Unknown environment". These entries hold only the region and the removal policy.
+4. **Sizing** comes from the `production` flag, not the environment name:
+
+   | | `STANDARD_SIZING` (production false) | `PRODUCTION_SIZING` (production true) |
+   | --- | --- | --- |
+   | `search` | 1 × `t3.small.search`, 1 AZ, 10 GiB | 3 × `m7g.medium.search`, one per AZ across 3 AZs, 10 GiB |
+   | `web` | `t3.small` | `t3.medium` |
+
+   So `-c env=production` without `-c production=true` gets the small sizing, which is why Step 0 warns about it.
 
 For `f-search` the result is:
 
@@ -139,15 +187,14 @@ For `f-search` the result is:
 
 Every setting that differs between environments is in this one object. The stacks never check `if (env === 'production')`; they only read `config`.
 
-The account isn't in `config`. No account IDs are stored in the repo, so `buildApp` takes the account from `-c account` and checks it:
+The account isn't in `config`. No account IDs are stored in the repo, so `planApp` takes the account from `-c account` and checks it:
 
 ```ts
 if (options.account === undefined) throw ...          // "Missing CDK context: pass -c account=<AWS account ID>"
 if (!ACCOUNT_PATTERN.test(options.account)) throw ...  // must be 12 digits
-const env = { account: options.account, region: config.region };
 ```
 
-`env` is passed to every stack. It fixes the account and region that the stack's templates, ARNs and asset locations are written for. Nothing checks that the account matches the environment: `-c env=production` with the dev account would deploy "production" into dev, so the account you pass is the only thing deciding where an environment lives.
+Later, `buildApp` builds `const env = { account: plan.account, region: config.region }`, and `env` is passed to every stack. It fixes the account and region that the stack's templates, ARNs and asset locations are written for. Nothing checks that the account matches the environment: `-c env=production` with the dev account would deploy "production" into dev, so the account you pass is the only thing deciding where an environment lives.
 
 ### 4b. Validate the mode flags
 
@@ -161,7 +208,16 @@ if (!BACKENDS.includes(backend)) throw ...                                     /
 
 ```ts
 const provision = options.branch === undefined || backend === 'provision';
+const branch = options.branch === undefined ? undefined : branchSlug(options.branch);
+return {
+  config, account, production, branch, backend,
+  dataStackName: provision ? `${prefix}-Data` : undefined,
+  apiStackName:  provision ? `${prefix}-Api`  : undefined,
+  webStackName:  branch === undefined ? undefined : `DlpAccessNext-Web-${branch}`,
+};
 ```
+
+That return value is the `AppPlan` that Step 0 printed.
 
 Every command also needs `-c account`; it's left out of the table because it doesn't affect which stacks exist.
 
@@ -191,10 +247,12 @@ Note the second example: `whunter/Multi_Env` became `whunter-multi-env`. That's 
 
 ### 4d. Construct the stacks
 
+Back in `buildApp`, each stack name in the plan becomes a stack:
+
 ```ts
-data = new DataStack(app, `${prefix}-Data`, { env, config });
-api  = new ApiStack(app, `${prefix}-Api`, { env, config, tables: data.tables, searchDomain: data.searchDomain });
-web  = new WebStack(app, `DlpAccessNext-Web-${branch}`, { env, config, branch });
+data = new DataStack(app, plan.dataStackName, { env, config });
+api  = new ApiStack(app, plan.apiStackName, { env, config, tables: data.tables, searchDomain: data.searchDomain });
+web  = new WebStack(app, plan.webStackName, { env, config, branch: plan.branch });
 if (api) web.addStackDependency(api);
 ```
 
@@ -255,7 +313,7 @@ Consequences:
 - The GSIs listed in `GLOBAL_INDEXES`.
 - `deletionProtection` and PITR on when `removalPolicy` is RETAIN, so on for dev, pre-production and production and off for `f-*`.
 
-**OpenSearch domain** (line 59). Its sizing comes straight from `config.search`.
+**OpenSearch domain** (line 59). Its sizing comes straight from `config.search`, so from `STANDARD_SIZING` or `PRODUCTION_SIZING` (Step 4a). With 3 nodes, the domain turns on zone awareness across 3 AZs.
 
 **Index template custom resource** (lines 85–104). CloudFormation can't configure anything *inside* an OpenSearch domain. To do that, the stack defines:
 
@@ -536,7 +594,9 @@ write to Archive-dlpnext-f-search ──► DynamoDB stream ──► event sour
 
 ## Step 11: the other modes
 
-Each command here also takes `-c account=$ACCOUNT`, omitted for brevity.
+Each command here also takes `-c account=$ACCOUNT`, omitted for brevity. The deploys go through `npm run deploy --` (Step 0).
+
+**`-c production=true`** changes no stack names, only sizing: the Data stack's domain becomes 3 nodes across 3 AZs, and the Web stack's `InstanceTypes` option becomes `t3.medium`. Use it for the real `production` environment; with `-c env=production`, Step 0's warning reminds you if it's missing.
 
 **`-c env=dev`** (no branch). Only Steps 5a and 5b run. You get two stacks, and Api depends on Data through the exports. This is how an environment is created or updated.
 
@@ -571,7 +631,7 @@ const template = Template.fromStack(api!);
 template.hasResourceProperties('AWS::AppSync::Resolver', { ... });
 ```
 
-It calls `buildApp` directly, which is why `buildApp` is separate from `bin/`. `Template.fromStack` then synthesizes that one stack in memory. So the tests exercise Steps 3 to 6 exactly as the CLI would, and then assert on the JSON. They run in seconds, need no AWS credentials, and catch things like:
+It calls `buildApp` directly, which is why `buildApp` is separate from `bin/`. `infra/test/deploy.test.ts` does the same for Step 0: it tests `contextFromArgs`, `describePlan`, `productionWarning` and `isConfirmed` on `planApp` results, with no prompt and no CLI. `Template.fromStack` then synthesizes that one stack in memory. So the tests exercise Steps 3 to 6 exactly as the CLI would, and then assert on the JSON. They run in seconds, need no AWS credentials, and catch things like:
 
 - a wrong policy ARN string;
 - a missing option setting;
@@ -587,12 +647,17 @@ They can't catch problems that only exist at deploy time. Examples:
 
 ## Try it yourself
 
-All of these are safe: they synthesize or read, and never change AWS.
+All of these are safe: they synthesize or read, and never change AWS. The `npm run deploy` lines feed the prompt an empty stdin, which counts as "no".
 
 ```bash
 cd infra
 
 ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+
+# Step 0: see the plan, and the production warning, without deploying
+npm run deploy -- -c env=f-demo -c account=$ACCOUNT -c branch=try/it -c backend=provision < /dev/null
+npm run deploy -- -c env=production -c account=$ACCOUNT < /dev/null
+npm run deploy -- -c env=production -c account=$ACCOUNT -c production=true < /dev/null
 
 # Steps 1-4: which stacks would this command touch?
 npx cdk ls -c env=dev -c account=$ACCOUNT -c branch=$(git branch --show-current)
@@ -613,11 +678,12 @@ npx cdk ls -c env=Dev -c account=$ACCOUNT
 npx cdk ls -c env=dev -c account=$ACCOUNT -c backend=provision
 npx cdk ls -c env=dev
 npx cdk ls -c env=dev -c account=12345
+npx cdk ls -c env=dev -c account=$ACCOUNT -c production=yes
 ```
 
 Experiments that teach well:
 
-1. Change `SMALL_WEB.instanceType` in `infra/lib/environments.ts`, then run `cdk diff` against a deployed Web stack. You'll see a single option-setting change.
+1. Change `STANDARD_SIZING.web.instanceType` in `infra/lib/environments.ts`, then run `cdk diff` against a deployed Web stack. You'll see a single option-setting change.
 2. Edit a file under `src/`, synth twice (before and after), and compare the `S3Key` of the `Version` resource. The asset hash moves.
 3. Temporarily comment out `web.addStackDependency(api)` in `infra/lib/app.ts` and synth in provision mode. The Web stack's manifest dependencies lose `…-Api`.
 
@@ -628,6 +694,7 @@ Experiments that teach well:
 | **App** | Root construct; one per `cdk` command run (`bin/appsync.ts`). |
 | **Stack** | A construct that becomes one CloudFormation stack and template. |
 | **Construct / L1 / L2** | A node in the tree. L1 = a raw `Cfn*` resource; L2 = a higher-level wrapper with defaults and `grant*` helpers. |
+| **Plan** | `planApp`'s result: the validated options with defaults, and the stack names. Shown by `npm run deploy` before it asks. |
 | **Context** | The key/value bag from `cdk.json` plus `-c` flags, read with `tryGetContext`. |
 | **Synth** | Running your app to produce `cdk.out`. No AWS calls. |
 | **Token** | A placeholder for a value known only at deploy time; becomes `Ref`, `Fn::GetAtt` or `Fn::ImportValue`. |

@@ -31,6 +31,13 @@ Add a separate CDK stack that deploys the Next.js app to Elastic Beanstalk. Whoe
    - `buildApp` takes a required `account` option, read from `-c account` in `bin/appsync.ts` and checked to be 12 digits (`b63f444`, Jest 33 tests).
    - The streaming handler test ARN uses a dummy ID (`c9df390`), so the real ID no longer appears in the repo's files.
    - README, CLAUDE.md, the spec and the lesson now show `-c account=$ACCOUNT`, with `ACCOUNT` set from `aws sts get-caller-identity` (`30fd263`).
+8. **Production sizing flag** (`df831d2`): `AppOptions.production` (`-c production=true`, default false). True gives OpenSearch 3 × `m7g.medium.search` across 3 AZs and Beanstalk `t3.medium`; false gives 1 × `t3.small.search` and `t3.small`. Sizing moved out of the per-environment entries into two profiles in `environments.ts`.
+9. **Deploy confirmation** (`2f89eb8`): the CDK CLI runs the app with stdin closed and also runs it for synth, ls and diff, so the prompt lives in a wrapper, `npm run deploy`.
+   - Validation moved from `buildApp` into `planApp`, which the wrapper reuses.
+   - The wrapper prints the plan and runs `cdk deploy --all` with the same arguments only on `y`/`yes` (any case). Anything else exits 1.
+   - Checked end to end without deploying: "no" and closed stdin stop it; a fake `npx` on PATH confirmed that "Y" runs `cdk deploy --all <args>`.
+10. **Production warning** (`3e556bd`): with `env=production`, a bold red banner names the account and flags a missing `-c production=true`; the prompt says "Deploy to PRODUCTION?".
+11. **Docs**: README gained a production deploy example (`cd58306`). The CDK lesson gained Step 0 (the wrapper) and covers `planApp`, `optionsFromContext` and the sizing profiles; its HTML was rebuilt.
 
 ## Decisions made without asking (flag if wrong)
 
@@ -41,6 +48,10 @@ Add a separate CDK stack that deploys the Next.js app to Elastic Beanstalk. Whoe
 - The platform is pinned in `SOLUTION_STACK` (`v6.11.8`), with managed minor updates on.
 - `-c account` is required, with no fallback to the logged-in account (`CDK_DEFAULT_ACCOUNT`), and nothing checks that the account fits the environment.
 - The real account ID was left in git history; removing it would mean rewriting history.
+- Production sizing: `m7g.medium.search` (kept from the old production entry) across 3 AZs, and `t3.medium` as the "larger" web instance.
+- `-c env=production` without `-c production=true` gets the small sizing; the confirmation banner flags it rather than refusing.
+- The confirmation is a wrapper, so `npx cdk deploy` can still bypass it.
+- A declined deploy exits 1.
 
 ## Open items
 
@@ -50,4 +61,4 @@ These are in `handoff.md`:
 - Decide on HTTPS or a custom domain.
 - Decide whether to point the PR-preview workflows at the Web stack.
 - Deploy pre-production.
-- Push `b63f444`, `c9df390` and `30fd263`, and open a PR only when asked.
+- Push `df831d2`, `2f89eb8`, `3e556bd` and `cd58306`, and open a PR only when asked.
