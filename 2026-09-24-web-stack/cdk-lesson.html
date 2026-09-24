@@ -80,10 +80,11 @@ th { background: var(--code-bg); }
 </nav>
 <main>
 <h1 id="how-the-cdk-scripts-work-one-command-traced-end-to-end">How the CDK scripts work: one command, traced end to end</h1>
-<p>This lesson follows a single command through every program it touches, from the moment you press Enter to a request landing on DynamoDB. Every file reference is relative to the repo root, <code>~/dev/dlp/access/dlp-access-next-cdk</code>. The command outputs and template excerpts are real: they were produced by running the commands against branch <code>whunter/multi-env</code> at <code>c9e6b85</code>.</p>
+<p>This lesson follows a single command through every program it touches, from the moment you press Enter to a request landing on DynamoDB. Every file reference is relative to the repo root, <code>~/dev/dlp/access/dlp-access-next-cdk</code>. The command outputs and template excerpts are real: they were produced by running the commands against branch <code>whunter/multi-env</code> at <code>c9e6b85</code>, and updated for the <code>-c account</code> flag added in <code>b63f444</code>. Account IDs are shown as <code>&lt;account&gt;</code>.</p>
 <p>The command we trace is the largest one, the one that provisions a feature environment and a branch deployment together:</p>
 <pre><code class="language-bash">cd infra
-npx cdk deploy --all -c env=f-search -c branch=whunter/multi-env -c backend=provision
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+npx cdk deploy --all -c env=f-search -c account=$ACCOUNT -c branch=whunter/multi-env -c backend=provision
 </code></pre>
 <p>The other modes are subsets of this one. They're covered in <a href="#step-11-the-other-modes">Step 11</a>.</p>
 <hr />
@@ -131,12 +132,13 @@ npx cdk deploy --all -c env=f-search -c branch=whunter/multi-env -c backend=prov
 <p>This is <strong>context</strong>, a key/value bag your app can read. The entries here are <em>feature flags</em>. They opt into newer CDK behaviours, such as merging IAM statements (<code>minimizePolicies</code>). They're fixed per project, so upgrading CDK doesn't silently change your templates.</p>
 <p>Then the CLI merges your <code>-c key=value</code> flags into that same bag. For our command, the context the app will see is:</p>
 <pre><code>env      = &quot;f-search&quot;
+account  = &quot;&lt;account&gt;&quot;      (the 12-digit ID in $ACCOUNT)
 branch   = &quot;whunter/multi-env&quot;
 backend  = &quot;provision&quot;
 + the feature flags from cdk.json
 </code></pre>
 <blockquote>
-<p><code>-c</code> is just &quot;add a context value&quot;. CDK gives <code>env</code>, <code>branch</code> and <code>backend</code> no special meaning; this project's own code interprets them (Step 3).</p>
+<p><code>-c</code> is just &quot;add a context value&quot;. CDK gives <code>env</code>, <code>account</code>, <code>branch</code> and <code>backend</code> no special meaning; this project's own code interprets them (Step 3).</p>
 </blockquote>
 <h2 id="step-2-the-cli-spawns-your-app">Step 2: the CLI spawns your app</h2>
 <p>The CLI runs the <code>app</code> command as a <strong>child process</strong>. It passes two things through environment variables:</p>
@@ -152,7 +154,12 @@ npx ts-node --prefer-ts-exts bin/appsync.ts: Subprocess exited with error 1
 <h2 id="step-3-infrabinappsyncts-the-entry-point">Step 3: <code>infra/bin/appsync.ts</code>, the entry point</h2>
 <pre><code class="language-ts">const app = new cdk.App();
 const context = (key: string) =&gt; app.node.tryGetContext(key);
-buildApp(app, { env: context('env'), branch: context('branch'), backend: context('backend') });
+buildApp(app, {
+  env: context('env'),
+  account: context('account'),
+  branch: context('branch'),
+  backend: context('backend'),
+});
 </code></pre>
 <ol>
 <li><code>new cdk.App()</code> creates the <strong>root of the construct tree</strong>. It reads <code>CDK_CONTEXT_JSON</code> and <code>CDK_OUTDIR</code>. It also registers a hook that runs <code>app.synth()</code> automatically when the Node process is about to exit. That's why no file ever calls <code>synth()</code>.</li>
@@ -160,7 +167,7 @@ buildApp(app, { env: context('env'), branch: context('branch'), backend: context
 <li><code>buildApp</code> does the real work. It lives in <code>infra/lib/app.ts</code> rather than in <code>bin/</code> so the Jest tests can call it directly with plain arguments (Step 12).</li>
 </ol>
 <h2 id="step-4-buildapp-decides-which-stacks-exist-infralibappts34">Step 4: <code>buildApp</code> decides which stacks exist (<code>infra/lib/app.ts:34</code>)</h2>
-<h3 id="4a-resolve-the-environment">4a. Resolve the environment</h3>
+<h3 id="4a-resolve-the-environment-and-account">4a. Resolve the environment and account</h3>
 <pre><code class="language-ts">const config = resolveEnvironment(options.env);
 </code></pre>
 <p><code>resolveEnvironment</code> (<code>infra/lib/environments.ts</code>) turns the string <code>&quot;f-search&quot;</code> into an <code>EnvironmentConfig</code> object:</p>
@@ -168,15 +175,20 @@ buildApp(app, { env: context('env'), branch: context('branch'), backend: context
 <li><strong>Missing?</strong> It throws &quot;Missing CDK context&quot;.</li>
 <li><strong>Bad shape?</strong> The name must match <code>/^[a-z][a-z0-9-]{0,19}$/</code>. The 20-character limit exists because the OpenSearch domain is <code>dlpnext-&lt;env&gt;</code> and domain names max out at 28 characters.</li>
 <li><strong>Lookup</strong>: <code>dev</code>, <code>pre-production</code> and <code>production</code> are entries in <code>ENVIRONMENTS</code>. Anything starting with <code>f-</code> gets the <code>FEATURE</code> settings, which are dev's settings with <code>removalPolicy: DESTROY</code>. Anything else throws &quot;Unknown environment&quot;.</li>
-<li><strong>Production guard</strong>: production's account is the placeholder <code>PRODUCTION_ACCOUNT_ID</code>, so it throws until someone fills in the real ID.</li>
 </ol>
 <p>For <code>f-search</code> the result is:</p>
-<pre><code class="language-ts">{ name: 'f-search', account: '226388486048', region: 'us-east-1',
+<pre><code class="language-ts">{ name: 'f-search', region: 'us-east-1',
   search: { instanceType: 't3.small.search', dataNodes: 1, availabilityZones: 1, volumeSizeGiB: 10 },
   web: { instanceType: 't3.small' },
   removalPolicy: RemovalPolicy.DESTROY }
 </code></pre>
 <p>Every setting that differs between environments is in this one object. The stacks never check <code>if (env === 'production')</code>; they only read <code>config</code>.</p>
+<p>The account isn't in <code>config</code>. No account IDs are stored in the repo, so <code>buildApp</code> takes the account from <code>-c account</code> and checks it:</p>
+<pre><code class="language-ts">if (options.account === undefined) throw ...          // &quot;Missing CDK context: pass -c account=&lt;AWS account ID&gt;&quot;
+if (!ACCOUNT_PATTERN.test(options.account)) throw ...  // must be 12 digits
+const env = { account: options.account, region: config.region };
+</code></pre>
+<p><code>env</code> is passed to every stack. It fixes the account and region that the stack's templates, ARNs and asset locations are written for. Nothing checks that the account matches the environment: <code>-c env=production</code> with the dev account would deploy &quot;production&quot; into dev, so the account you pass is the only thing deciding where an environment lives.</p>
 <h3 id="4b-validate-the-mode-flags">4b. Validate the mode flags</h3>
 <pre><code class="language-ts">if (options.branch === undefined &amp;&amp; options.backend !== undefined) throw ...  // backend without branch
 const backend = options.backend ?? 'attach';                                   // default
@@ -185,6 +197,7 @@ if (!BACKENDS.includes(backend)) throw ...                                     /
 <h3 id="4c-pick-the-stacks">4c. Pick the stacks</h3>
 <pre><code class="language-ts">const provision = options.branch === undefined || backend === 'provision';
 </code></pre>
+<p>Every command also needs <code>-c account</code>; it's left out of the table because it doesn't affect which stacks exist.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -212,14 +225,14 @@ if (!BACKENDS.includes(backend)) throw ...                                     /
 </tbody>
 </table></div>
 <p>You can check this without deploying anything. <code>cdk ls</code> runs Steps 1 to 4 and prints the stack names:</p>
-<pre><code>$ npx cdk ls -c env=dev
+<pre><code>$ npx cdk ls -c env=dev -c account=$ACCOUNT
 DlpAccessNext-dev-Data
 DlpAccessNext-dev-Api
 
-$ npx cdk ls -c env=dev -c branch=whunter/Multi_Env
+$ npx cdk ls -c env=dev -c account=$ACCOUNT -c branch=whunter/Multi_Env
 DlpAccessNext-Web-whunter-multi-env
 
-$ npx cdk ls -c env=f-search -c branch=whunter/multi-env -c backend=provision
+$ npx cdk ls -c env=f-search -c account=$ACCOUNT -c branch=whunter/multi-env -c backend=provision
 DlpAccessNext-f-search-Data
 DlpAccessNext-f-search-Api
 DlpAccessNext-Web-whunter-multi-env
@@ -406,7 +419,7 @@ DlpAccessNext-f-search-Api            deps: [DlpAccessNext-f-search-Data, Api.as
 DlpAccessNext-Web-whunter-multi-env   deps: [DlpAccessNext-f-search-Api, Web.assets]       ← from addStackDependency
 </code></pre>
 <p>In attach mode, the Web stack's only dependency is its own assets.</p>
-<p>The manifest also names the <strong>bootstrap</strong> resources every deploy uses: <code>cdk-hnb659fds-assets-226388486048-us-east-1</code> (an S3 bucket) and roles such as <code>cdk-hnb659fds-deploy-role-…</code>. They were created once per account and region by <code>cdk bootstrap</code>. <code>hnb659fds</code> is CDK's default &quot;qualifier&quot;.</p>
+<p>The manifest also names the <strong>bootstrap</strong> resources every deploy uses: <code>cdk-hnb659fds-assets-&lt;account&gt;-us-east-1</code> (an S3 bucket) and roles such as <code>cdk-hnb659fds-deploy-role-…</code>. They were created once per account and region by <code>cdk bootstrap</code>. <code>hnb659fds</code> is CDK's default &quot;qualifier&quot;.</p>
 <p>The TypeScript child process then exits. <strong>Everything after this point is the CLI and AWS; your code doesn't run again.</strong></p>
 <h2 id="step-7-the-cli-deploys-stack-by-stack">Step 7: the CLI deploys, stack by stack</h2>
 <p>Back in the parent <code>cdk</code> process, <code>deploy --all</code> reads <code>manifest.json</code> and deploys the stacks in dependency order: Data, then Api, then Web, one at a time by default. For each stack:</p>
@@ -481,6 +494,7 @@ It must be executable. The CDK asset zip keeps file modes from your working tree
 </code></pre>
 <hr />
 <h2 id="step-11-the-other-modes">Step 11: the other modes</h2>
+<p>Each command here also takes <code>-c account=$ACCOUNT</code>, omitted for brevity.</p>
 <p><strong><code>-c env=dev</code></strong> (no branch). Only Steps 5a and 5b run. You get two stacks, and Api depends on Data through the exports. This is how an environment is created or updated.</p>
 <p><strong><code>-c env=dev -c branch=X</code></strong> (attach, the default). Only Step 5c runs, and the app contains only the Web stack. No dependency is added, so correctness relies entirely on <em>names</em>:</p>
 <ul>
@@ -502,7 +516,8 @@ It must be executable. The CDK asset zip keeps file modes from your working tree
 </ul>
 <h2 id="step-12-how-the-tests-use-the-same-pipeline">Step 12: how the tests use the same pipeline</h2>
 <p><code>infra/test/app.test.ts</code> skips the CLI entirely:</p>
-<pre><code class="language-ts">const { data, api } = buildApp(new App(), { env: 'dev' });
+<pre><code class="language-ts">const account = '123456789012';   // a dummy ID; nothing is deployed
+const { data, api } = buildApp(new App(), { env: 'dev', account });
 const template = Template.fromStack(api!);
 template.hasResourceProperties('AWS::AppSync::Resolver', { ... });
 </code></pre>
@@ -523,11 +538,13 @@ template.hasResourceProperties('AWS::AppSync::Resolver', { ... });
 <p>All of these are safe: they synthesize or read, and never change AWS.</p>
 <pre><code class="language-bash">cd infra
 
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+
 # Steps 1-4: which stacks would this command touch?
-npx cdk ls -c env=dev -c branch=$(git branch --show-current)
+npx cdk ls -c env=dev -c account=$ACCOUNT -c branch=$(git branch --show-current)
 
 # Steps 1-6 into a throwaway directory; then poke around
-npx cdk synth --all -c env=f-demo -c branch=try/it -c backend=provision -o /tmp/cdkout &gt; /dev/null
+npx cdk synth --all -c env=f-demo -c account=$ACCOUNT -c branch=try/it -c backend=provision -o /tmp/cdkout &gt; /dev/null
 ls /tmp/cdkout
 python3 -m json.tool /tmp/cdkout/manifest.json | less           # find &quot;dependencies&quot;
 grep -o '&quot;Fn::ImportValue&quot;: &quot;[^&quot;]*&quot;' /tmp/cdkout/*Api.template.json | head
@@ -535,11 +552,13 @@ grep -c ImportValue /tmp/cdkout/DlpAccessNext-Web-try-it.template.json   # 0: at
 ls -A /tmp/cdkout/asset.*/ | head -40                            # what gets uploaded
 
 # Step 7's change set, without executing it (needs AWS credentials)
-npx cdk diff -c env=dev -c branch=$(git branch --show-current)
+npx cdk diff -c env=dev -c account=$ACCOUNT -c branch=$(git branch --show-current)
 
 # Watch the validation in Step 4 fire
-npx cdk ls -c env=Dev
-npx cdk ls -c env=dev -c backend=provision
+npx cdk ls -c env=Dev -c account=$ACCOUNT
+npx cdk ls -c env=dev -c account=$ACCOUNT -c backend=provision
+npx cdk ls -c env=dev
+npx cdk ls -c env=dev -c account=12345
 </code></pre>
 <p>Experiments that teach well:</p>
 <ol>

@@ -1,12 +1,13 @@
 # How the CDK scripts work: one command, traced end to end
 
-This lesson follows a single command through every program it touches, from the moment you press Enter to a request landing on DynamoDB. Every file reference is relative to the repo root, `~/dev/dlp/access/dlp-access-next-cdk`. The command outputs and template excerpts are real: they were produced by running the commands against branch `whunter/multi-env` at `c9e6b85`.
+This lesson follows a single command through every program it touches, from the moment you press Enter to a request landing on DynamoDB. Every file reference is relative to the repo root, `~/dev/dlp/access/dlp-access-next-cdk`. The command outputs and template excerpts are real: they were produced by running the commands against branch `whunter/multi-env` at `c9e6b85`, and updated for the `-c account` flag added in `b63f444`. Account IDs are shown as `<account>`.
 
 The command we trace is the largest one, the one that provisions a feature environment and a branch deployment together:
 
 ```bash
 cd infra
-npx cdk deploy --all -c env=f-search -c branch=whunter/multi-env -c backend=provision
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+npx cdk deploy --all -c env=f-search -c account=$ACCOUNT -c branch=whunter/multi-env -c backend=provision
 ```
 
 The other modes are subsets of this one. They're covered in [Step 11](#step-11-the-other-modes).
@@ -73,12 +74,13 @@ Then the CLI merges your `-c key=value` flags into that same bag. For our comman
 
 ```
 env      = "f-search"
+account  = "<account>"      (the 12-digit ID in $ACCOUNT)
 branch   = "whunter/multi-env"
 backend  = "provision"
 + the feature flags from cdk.json
 ```
 
-> `-c` is just "add a context value". CDK gives `env`, `branch` and `backend` no special meaning; this project's own code interprets them (Step 3).
+> `-c` is just "add a context value". CDK gives `env`, `account`, `branch` and `backend` no special meaning; this project's own code interprets them (Step 3).
 
 ## Step 2: the CLI spawns your app
 
@@ -100,7 +102,12 @@ npx ts-node --prefer-ts-exts bin/appsync.ts: Subprocess exited with error 1
 ```ts
 const app = new cdk.App();
 const context = (key: string) => app.node.tryGetContext(key);
-buildApp(app, { env: context('env'), branch: context('branch'), backend: context('backend') });
+buildApp(app, {
+  env: context('env'),
+  account: context('account'),
+  branch: context('branch'),
+  backend: context('backend'),
+});
 ```
 
 1. `new cdk.App()` creates the **root of the construct tree**. It reads `CDK_CONTEXT_JSON` and `CDK_OUTDIR`. It also registers a hook that runs `app.synth()` automatically when the Node process is about to exit. That's why no file ever calls `synth()`.
@@ -109,7 +116,7 @@ buildApp(app, { env: context('env'), branch: context('branch'), backend: context
 
 ## Step 4: `buildApp` decides which stacks exist (`infra/lib/app.ts:34`)
 
-### 4a. Resolve the environment
+### 4a. Resolve the environment and account
 
 ```ts
 const config = resolveEnvironment(options.env);
@@ -120,18 +127,27 @@ const config = resolveEnvironment(options.env);
 1. **Missing?** It throws "Missing CDK context".
 2. **Bad shape?** The name must match `/^[a-z][a-z0-9-]{0,19}$/`. The 20-character limit exists because the OpenSearch domain is `dlpnext-<env>` and domain names max out at 28 characters.
 3. **Lookup**: `dev`, `pre-production` and `production` are entries in `ENVIRONMENTS`. Anything starting with `f-` gets the `FEATURE` settings, which are dev's settings with `removalPolicy: DESTROY`. Anything else throws "Unknown environment".
-4. **Production guard**: production's account is the placeholder `PRODUCTION_ACCOUNT_ID`, so it throws until someone fills in the real ID.
 
 For `f-search` the result is:
 
 ```ts
-{ name: 'f-search', account: '226388486048', region: 'us-east-1',
+{ name: 'f-search', region: 'us-east-1',
   search: { instanceType: 't3.small.search', dataNodes: 1, availabilityZones: 1, volumeSizeGiB: 10 },
   web: { instanceType: 't3.small' },
   removalPolicy: RemovalPolicy.DESTROY }
 ```
 
 Every setting that differs between environments is in this one object. The stacks never check `if (env === 'production')`; they only read `config`.
+
+The account isn't in `config`. No account IDs are stored in the repo, so `buildApp` takes the account from `-c account` and checks it:
+
+```ts
+if (options.account === undefined) throw ...          // "Missing CDK context: pass -c account=<AWS account ID>"
+if (!ACCOUNT_PATTERN.test(options.account)) throw ...  // must be 12 digits
+const env = { account: options.account, region: config.region };
+```
+
+`env` is passed to every stack. It fixes the account and region that the stack's templates, ARNs and asset locations are written for. Nothing checks that the account matches the environment: `-c env=production` with the dev account would deploy "production" into dev, so the account you pass is the only thing deciding where an environment lives.
 
 ### 4b. Validate the mode flags
 
@@ -147,6 +163,8 @@ if (!BACKENDS.includes(backend)) throw ...                                     /
 const provision = options.branch === undefined || backend === 'provision';
 ```
 
+Every command also needs `-c account`; it's left out of the table because it doesn't affect which stacks exist.
+
 | Flags | `provision` | Stacks created |
 | --- | --- | --- |
 | `-c env=dev` | true (no branch) | Data, Api |
@@ -156,14 +174,14 @@ const provision = options.branch === undefined || backend === 'provision';
 You can check this without deploying anything. `cdk ls` runs Steps 1 to 4 and prints the stack names:
 
 ```
-$ npx cdk ls -c env=dev
+$ npx cdk ls -c env=dev -c account=$ACCOUNT
 DlpAccessNext-dev-Data
 DlpAccessNext-dev-Api
 
-$ npx cdk ls -c env=dev -c branch=whunter/Multi_Env
+$ npx cdk ls -c env=dev -c account=$ACCOUNT -c branch=whunter/Multi_Env
 DlpAccessNext-Web-whunter-multi-env
 
-$ npx cdk ls -c env=f-search -c branch=whunter/multi-env -c backend=provision
+$ npx cdk ls -c env=f-search -c account=$ACCOUNT -c branch=whunter/multi-env -c backend=provision
 DlpAccessNext-f-search-Data
 DlpAccessNext-f-search-Api
 DlpAccessNext-Web-whunter-multi-env
@@ -425,7 +443,7 @@ DlpAccessNext-Web-whunter-multi-env   deps: [DlpAccessNext-f-search-Api, Web.ass
 
 In attach mode, the Web stack's only dependency is its own assets.
 
-The manifest also names the **bootstrap** resources every deploy uses: `cdk-hnb659fds-assets-226388486048-us-east-1` (an S3 bucket) and roles such as `cdk-hnb659fds-deploy-role-…`. They were created once per account and region by `cdk bootstrap`. `hnb659fds` is CDK's default "qualifier".
+The manifest also names the **bootstrap** resources every deploy uses: `cdk-hnb659fds-assets-<account>-us-east-1` (an S3 bucket) and roles such as `cdk-hnb659fds-deploy-role-…`. They were created once per account and region by `cdk bootstrap`. `hnb659fds` is CDK's default "qualifier".
 
 The TypeScript child process then exits. **Everything after this point is the CLI and AWS; your code doesn't run again.**
 
@@ -518,6 +536,8 @@ write to Archive-dlpnext-f-search ──► DynamoDB stream ──► event sour
 
 ## Step 11: the other modes
 
+Each command here also takes `-c account=$ACCOUNT`, omitted for brevity.
+
 **`-c env=dev`** (no branch). Only Steps 5a and 5b run. You get two stacks, and Api depends on Data through the exports. This is how an environment is created or updated.
 
 **`-c env=dev -c branch=X`** (attach, the default). Only Step 5c runs, and the app contains only the Web stack. No dependency is added, so correctness relies entirely on *names*:
@@ -545,7 +565,8 @@ CloudFormation updates the environment in place, and it relaunches the instance 
 `infra/test/app.test.ts` skips the CLI entirely:
 
 ```ts
-const { data, api } = buildApp(new App(), { env: 'dev' });
+const account = '123456789012';   // a dummy ID; nothing is deployed
+const { data, api } = buildApp(new App(), { env: 'dev', account });
 const template = Template.fromStack(api!);
 template.hasResourceProperties('AWS::AppSync::Resolver', { ... });
 ```
@@ -571,11 +592,13 @@ All of these are safe: they synthesize or read, and never change AWS.
 ```bash
 cd infra
 
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+
 # Steps 1-4: which stacks would this command touch?
-npx cdk ls -c env=dev -c branch=$(git branch --show-current)
+npx cdk ls -c env=dev -c account=$ACCOUNT -c branch=$(git branch --show-current)
 
 # Steps 1-6 into a throwaway directory; then poke around
-npx cdk synth --all -c env=f-demo -c branch=try/it -c backend=provision -o /tmp/cdkout > /dev/null
+npx cdk synth --all -c env=f-demo -c account=$ACCOUNT -c branch=try/it -c backend=provision -o /tmp/cdkout > /dev/null
 ls /tmp/cdkout
 python3 -m json.tool /tmp/cdkout/manifest.json | less           # find "dependencies"
 grep -o '"Fn::ImportValue": "[^"]*"' /tmp/cdkout/*Api.template.json | head
@@ -583,11 +606,13 @@ grep -c ImportValue /tmp/cdkout/DlpAccessNext-Web-try-it.template.json   # 0: at
 ls -A /tmp/cdkout/asset.*/ | head -40                            # what gets uploaded
 
 # Step 7's change set, without executing it (needs AWS credentials)
-npx cdk diff -c env=dev -c branch=$(git branch --show-current)
+npx cdk diff -c env=dev -c account=$ACCOUNT -c branch=$(git branch --show-current)
 
 # Watch the validation in Step 4 fire
-npx cdk ls -c env=Dev
-npx cdk ls -c env=dev -c backend=provision
+npx cdk ls -c env=Dev -c account=$ACCOUNT
+npx cdk ls -c env=dev -c account=$ACCOUNT -c backend=provision
+npx cdk ls -c env=dev
+npx cdk ls -c env=dev -c account=12345
 ```
 
 Experiments that teach well:
