@@ -105,7 +105,7 @@ buildApp(app, { env: context('env'), branch: context('branch'), backend: context
 
 1. `new cdk.App()` creates the **root of the construct tree**. It reads `CDK_CONTEXT_JSON` and `CDK_OUTDIR`. It also registers a hook that runs `app.synth()` automatically when the Node process is about to exit. That's why no file ever calls `synth()`.
 2. `tryGetContext` reads one key from the context, returning `undefined` if it isn't set. It's the only place the `-c` flags enter the code.
-3. `buildApp` does the real work. It lives in `infra/lib/app.ts` rather than in `bin/` so the Jest tests can call it directly with plain arguments (Step 11).
+3. `buildApp` does the real work. It lives in `infra/lib/app.ts` rather than in `bin/` so the Jest tests can call it directly with plain arguments (Step 12).
 
 ## Step 4: `buildApp` decides which stacks exist (`infra/lib/app.ts:34`)
 
