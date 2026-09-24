@@ -24,7 +24,13 @@ Add a separate CDK stack that deploys the Next.js app to Elastic Beanstalk. Whoe
 4. **First deploy failed:** the `AWSElasticBeanstalkEnhancedHealth` managed policy lives at `policy/service-role/...`. I fixed the ARN and added a regression test (`c2c4173`, 31 tests). The user redeployed:
    - dev's Data, Api and Web stacks are all `CREATE_COMPLETE`.
    - The EB environment `dlpnext-whunter-multi-env` is Ready / Green.
-5. **Handoff** written. **README** rewritten from the create-next-app boilerplate into a project README covering environments, stacks, local run, deploy commands and tests (`c9e6b85`, not pushed).
+5. **Handoff** written. **README** rewritten from the create-next-app boilerplate into a project README covering environments, stacks, local run, deploy commands and tests (`c9e6b85`). Pushed at the user's request.
+6. **CDK lesson**: at the user's request, wrote `cdk-lesson.md`, which traces `cdk deploy --all ... -c backend=provision` from the CLI reading `cdk.json` through synthesis, change sets, Beanstalk and a runtime request. Added an HTML version and the `md2html.py` converter, all in this directory, and pushed.
+7. **Account ID out of the code**: the user didn't want account IDs hardcoded.
+   - `environments.ts` lost `DEV_ACCOUNT`, the production placeholder and the placeholder check.
+   - `buildApp` takes a required `account` option, read from `-c account` in `bin/appsync.ts` and checked to be 12 digits (`b63f444`, Jest 33 tests).
+   - The streaming handler test ARN uses a dummy ID (`c9df390`), so the real ID no longer appears in the repo's files.
+   - README, CLAUDE.md, the spec and the lesson now show `-c account=$ACCOUNT`, with `ACCOUNT` set from `aws sts get-caller-identity` (`30fd263`).
 
 ## Decisions made without asking (flag if wrong)
 
@@ -33,6 +39,8 @@ Add a separate CDK stack that deploys the Next.js app to Elastic Beanstalk. Whoe
 - Each Web stack owns its own Beanstalk application rather than sharing the existing `dlp-access-next` application.
 - Web environments are single-instance and HTTP only: no load balancer, HTTPS or custom domain yet.
 - The platform is pinned in `SOLUTION_STACK` (`v6.11.8`), with managed minor updates on.
+- `-c account` is required, with no fallback to the logged-in account (`CDK_DEFAULT_ACCOUNT`), and nothing checks that the account fits the environment.
+- The real account ID was left in git history; removing it would mean rewriting history.
 
 ## Open items
 
@@ -42,4 +50,4 @@ These are in `handoff.md`:
 - Decide on HTTPS or a custom domain.
 - Decide whether to point the PR-preview workflows at the Web stack.
 - Deploy pre-production.
-- Push `c9e6b85`, and open a PR only when asked.
+- Push `b63f444`, `c9df390` and `30fd263`, and open a PR only when asked.

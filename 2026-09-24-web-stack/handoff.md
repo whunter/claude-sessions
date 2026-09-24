@@ -1,11 +1,11 @@
 # Handoff: per-branch Next.js Web stack (dlp-access-next-cdk)
 
-Repo: `~/dev/dlp/access/dlp-access-next-cdk`, branch `whunter/multi-env`. The working tree is clean. HEAD is `c9e6b85` (README rewrite), one commit ahead of origin and not pushed. No PR is open. `whunter/appsync` is not merged to `main`, so a PR against `main` would also carry its commits.
+Repo: `~/dev/dlp/access/dlp-access-next-cdk`, branch `whunter/multi-env`. The working tree is clean. HEAD is `30fd263`, three commits ahead of origin (`b63f444`, `c9df390`, `30fd263`) and not pushed. No PR is open. `whunter/appsync` is not merged to `main`, so a PR against `main` would also carry its commits.
 
 ## Where the details live (not repeated here)
 
 - **Human-facing overview**: `README.md` (environments, stacks, local run, deploy commands, tests).
-- **Commands, context flags, naming rules and architecture**: `CLAUDE.md` at the repo root. It covers `-c env`, `-c branch`, `-c backend=attach|provision`, and how Web stacks find their environment through the SSM parameter and the instance profile name.
+- **Commands, context flags, naming rules and architecture**: `CLAUDE.md` at the repo root. It covers `-c env`, `-c account`, `-c branch`, `-c backend=attach|provision`, and how Web stacks find their environment through the SSM parameter and the instance profile name.
 - **Data-layer spec and its deviations**: `docs/issues/multi-env-data-layer.md`. The Web stack has no spec of its own; its design is in the `cf56eda` commit message and in CLAUDE.md.
 - **Commits**: `git log whunter/appsync..whunter/multi-env`
   - `2b5995f` spec
@@ -14,12 +14,16 @@ Repo: `~/dev/dlp/access/dlp-access-next-cdk`, branch `whunter/multi-env`. The wo
   - `cf56eda` Web stack
   - `c2c4173` fix for the service-role policy ARN
   - `c9e6b85` README rewritten for the project (environments, stacks, local run, deploy, tests)
+  - `b63f444` the AWS account ID comes from a required `-c account=<12 digits>` instead of being hardcoded in `environments.ts`
+  - `c9df390` dummy account ID (`123456789012`) in the streaming handler's test ARN
+  - `30fd263` README notes that the account is passed in
 - **Code**:
   - `infra/lib/web-stack.ts`: WebStack, `branchSlug`, `webResourceName`, `SOLUTION_STACK`, `BUNDLE_EXCLUDES`.
-  - `infra/lib/app.ts`: `buildApp(app, { env, branch, backend })`.
-  - `infra/lib/environments.ts`: the `web.instanceType` setting, `ebInstanceProfileName` and `graphqlApiUrlParameterName`.
+  - `infra/lib/app.ts`: `buildApp(app, { env, account, branch, backend })`. It checks that `account` is present and 12 digits.
+  - `infra/lib/environments.ts`: per-environment region, sizing and removal policy (no account IDs), the `web.instanceType` setting, `ebInstanceProfileName` and `graphqlApiUrlParameterName`.
   - `infra/lib/api-stack.ts`: now writes the SSM parameter.
-- **Tests**: `cd infra && npm test` (Jest, 31 pass) and `npm run test:lambda` (pytest, 7 pass).
+- **Tests**: `cd infra && npm test` (Jest, 33 pass) and `npm run test:lambda` (pytest, 7 pass).
+- **CDK lesson** (traces one deploy command through every step): `~/dev/dlp/claude-sessions/2026-09-24-web-stack/cdk-lesson.md`, plus `cdk-lesson.html`. Rebuild the HTML with `/usr/bin/python3 md2html.py cdk-lesson.md cdk-lesson.html` (that Python has markdown-it-py).
 - **This session's summary**: `~/dev/dlp/claude-sessions/2026-09-24-web-stack/summary.md`.
 - **Previous handoff and summary for the data-layer work**: `~/dev/dlp/claude-sessions/2026-09-24-data-layer-provision/`.
 
@@ -35,6 +39,8 @@ Repo: `~/dev/dlp/access/dlp-access-next-cdk`, branch `whunter/multi-env`. The wo
    - `DlpAccessNext-dev-Data`, `DlpAccessNext-dev-Api` and `DlpAccessNext-Web-whunter-multi-env` are `CREATE_COMPLETE`.
    - The EB environment `dlpnext-whunter-multi-env` is Ready / Green, at CNAME `dlpnext-whunter-multi-env.eba-jmhckmmw.us-east-1.elasticbeanstalk.com`.
    - The old `DlpAccessNextAppSyncStack` still exists.
+4. The user asked for a lesson on how the CDK scripts work. I wrote `cdk-lesson.md` and an HTML version in this session directory, along with the `md2html.py` converter.
+5. The user didn't want AWS account IDs hardcoded. `-c account` is now required on every CDK command (`b63f444`). The real ID is gone from the repo's files (it remains in git history). The docs and the lesson were updated to match.
 
 ## Next steps (none requested yet; ask the user before acting)
 
@@ -42,16 +48,17 @@ Repo: `~/dev/dlp/access/dlp-access-next-cdk`, branch `whunter/multi-env`. The wo
    - Open `http://<CNAME>/examples/appsync-queries`.
    - The dev tables are empty, so expect "skipped" entries rather than errors. Seed a few Archive/Collection rows to check the search path and the indexing (see the checks in the previous handoff).
    - If requests fail with AccessDenied, check that the instance role grant and the SSM value point at the dev API.
-2. Destroy the old `DlpAccessNextAppSyncStack` once dev checks out (user-run): `! cd infra && npx cdk destroy DlpAccessNextAppSyncStack`. If the CLI requires context, try adding `-c env=dev`. The old hand-made EB env `appsync-stack` (app `dlp-access-next-cdk`) still points at the old API, so the user decides whether to retire it too.
+2. Destroy the old `DlpAccessNextAppSyncStack` once dev checks out (user-run): `! cd infra && npx cdk destroy DlpAccessNextAppSyncStack -c env=dev -c account=$(aws sts get-caller-identity --query Account --output text)`. The app now throws without `env` and `account`, so the CLI likely needs both even though that stack isn't in the app. The old hand-made EB env `appsync-stack` (app `dlp-access-next-cdk`) still points at the old API, so the user decides whether to retire it too.
 3. Items the user may want next, not yet discussed:
    - HTTPS, a load balancer or a custom domain / Route 53 record (the Web stack has none).
    - Wiring `.github/workflows/pr-preview-*.yaml` to use the Web stack. Those workflows build a Docker image from a Dockerfile that doesn't exist in the repo, so they are likely stale.
    - Deploying `pre-production`.
-4. Open a PR only when asked.
+4. Push `whunter/multi-env` (three commits ahead) and open a PR only when asked.
 
 ## Things to watch
 
 - Deploys are user-run; give the user `!` commands. Never push without asking, except when "write a summary" is requested. Commit after every turn. Add no AI attribution anywhere (the user's global CLAUDE.md).
+- Every CDK command needs `-c account=<id>`. Nothing checks that the account matches the environment, so a wrong ID deploys that environment into the wrong account.
 - My IAM user cannot call `ssm:GetParameter` or `iam:GetRolePolicy`. Read the API URL from the Api stack output `GraphQLApiUrl` instead.
 - **Beanstalk platform pin**: `SOLUTION_STACK` is `v6.11.8`. Managed minor updates move the live platform forward, so bump the constant when it is changed deliberately.
 - Attach mode requires the target environment's Api stack from `cf56eda` or later (that version writes the SSM parameter). Otherwise the deploy fails with "Unable to fetch parameters".
