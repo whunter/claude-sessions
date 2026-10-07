@@ -28,3 +28,12 @@ Date: 2026-10-07
 ## Convention to pass to any reviewer or judge
 
 `alt_text` uses standard spellings of words the artist misspelled; `visual_description` transcribes the artist's spelling exactly. The difference between the fields is intended and is not an error.
+
+## Length statistics (added later the same day)
+
+Figures are in `session-summary.md`. To reproduce:
+
+- glink fields: read each `docs/glink00*.csv` that is not a `_review` file, plus `docs/20261005_archive_consolidation.csv` (skip rows where the fields are empty), and measure `alt_text` and `visual_description`.
+- DynamoDB: `aws dynamodb scan --table-name Archive-77eik3yv7rbdbjhjemas6h7dmi-vtdlppprd --projection-expression '#d' --expression-attribute-names '{"#d":"description"}'`. The attribute is a list of strings, so decide whether to measure per record or per entry; the two give 109 and 85 characters.
+
+These are snapshots: the glink files are still being edited and the table is live, so the numbers will drift.
