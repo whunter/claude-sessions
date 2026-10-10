@@ -1,0 +1,15 @@
+glink002091-1 | 6522 x 8192 | 5.22 | painting | oil/acrylic | Church
+glink002092-1 | 6514 x 8142 | 5.19 | painting | oil/acrylic | Flowers
+glink002093-1 | 8359 x 6837 | 5.33 | painting | oil/acrylic | Still life watermelon, pitcher
+glink002094-1 | 8724 x 6487 | 5.56 | painting | oil/acrylic | House
+glink002095-1 | 6451 x 12626 | 8.05 | painting | oil/acrylic | Howdy Partner
+glink002096-1 | 12333 x 10026 | 7.87 | painting | oil/acrylic | Pat Hunter at Ivy Nursery, Ivy VA
+glink002097-1 | 6820 x 5156 | 4.35 | painting |  | Mary Baldwin (SMA Gate)
+glink002098-1 | 6704 x 5192 | 4.28 | painting |  | Brick house 117
+glink002099-1 | 7609 x 6437 | 4.85 | painting |  | Stuart Hall
+glink002100-1 | 6368 x 5132 | 4.06 | painting |  | Tree Swing
+glink002101-1 | 5068 x 3755 | 3.23 | painting |  | Wharf Across from Depot
+glink002102-1 | 5589 x 4508 | 3.56 | painting |  | Mint Spring Out building
+glink002103-1 | 5075 x 6629 | 4.23 | painting |  | Downtown street w/ tower and dome
+glink002104-1 | 5495 x 7891 | 5.03 | painting |  | House at top of stairs
+glink002105-1 | 5508 x 7867 | 5.02 | painting |  | Staunton Clock Tower
