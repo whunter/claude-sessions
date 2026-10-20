@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CDK Execution Walkthrough</title>
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ec;
+  --text: #1f1d1a;
+  --muted: #6b665e;
+  --border: #e3dfd6;
+  --accent: #b4532a;
+  --accent-soft: #f6e6dc;
+  --phase-construct: #2f6f9f;
+  --phase-synth: #7a5aa6;
+  --phase-deploy: #3f8452;
+  --code-bg: #f5f3ee;
+  --code-text: #2a2723;
+  --note-bg: #eef4f9;
+  --note-border: #9fbfd9;
+  --warn-bg: #fbf1e3;
+  --warn-border: #e2b77a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161514;
+    --surface: #1e1d1b;
+    --surface-2: #262522;
+    --text: #ece8e1;
+    --muted: #a39d93;
+    --border: #36332f;
+    --accent: #e48a5f;
+    --accent-soft: #3a2a21;
+    --phase-construct: #6aaee0;
+    --phase-synth: #b597e0;
+    --phase-deploy: #7cc48f;
+    --code-bg: #121110;
+    --code-text: #e6e1d8;
+    --note-bg: #1b2631;
+    --note-border: #3d5f7d;
+    --warn-bg: #2e2418;
+    --warn-border: #7d5a2c;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161514;
+  --surface: #1e1d1b;
+  --surface-2: #262522;
+  --text: #ece8e1;
+  --muted: #a39d93;
+  --border: #36332f;
+  --accent: #e48a5f;
+  --accent-soft: #3a2a21;
+  --phase-construct: #6aaee0;
+  --phase-synth: #b597e0;
+  --phase-deploy: #7cc48f;
+  --code-bg: #121110;
+  --code-text: #e6e1d8;
+  --note-bg: #1b2631;
+  --note-border: #3d5f7d;
+  --warn-bg: #2e2418;
+  --warn-border: #7d5a2c;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+.layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 16px 96px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+}
+@media (min-width: 1000px) {
+  .layout { grid-template-columns: 240px minmax(0, 1fr); }
+  nav.toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+}
+nav.toc { font-size: 14px; }
+nav.toc .label { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc li { margin: 2px 0; }
+nav.toc a { color: var(--muted); text-decoration: none; display: block; padding: 3px 8px; border-left: 2px solid var(--border); }
+nav.toc a:hover { color: var(--text); border-left-color: var(--accent); }
+nav.toc .ph { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 4px; font-weight: 600; }
+main { min-width: 0; }
+header.hero h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
+header.hero p.lede { font-size: 18px; color: var(--muted); margin: 0 0 24px; max-width: 70ch; }
+h2 { font-size: 26px; margin: 64px 0 8px; letter-spacing: -0.01em; scroll-margin-top: 16px; }
+h3 { font-size: 19px; margin: 32px 0 8px; }
+p, li { max-width: 74ch; }
+a { color: var(--accent); }
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .88em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+pre .c { color: var(--muted); font-style: italic; }
+pre .hl { background: var(--accent-soft); display: inline-block; width: 100%; }
+.file { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; color: var(--muted); margin: 16px 0 -8px; }
+.step {
+  display: flex; gap: 12px; align-items: baseline;
+  margin: 64px 0 8px;
+  scroll-margin-top: 16px;
+}
+.step .num {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  color: #fff; font-weight: 700; font-size: 15px;
+  transform: translateY(-4px);
+}
+.step h2 { margin: 0; }
+.construct .num { background: var(--phase-construct); }
+.synth .num { background: var(--phase-synth); }
+.deploy .num { background: var(--phase-deploy); }
+.pre .num { background: var(--accent); }
+.tag { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.tag.construct { color: var(--phase-construct); }
+.tag.synth { color: var(--phase-synth); }
+.tag.deploy { color: var(--phase-deploy); }
+.tag.pre { color: var(--accent); }
+.callout { border-left: 4px solid var(--note-border); background: var(--note-bg); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+.callout.warn { border-left-color: var(--warn-border); background: var(--warn-bg); }
+.callout strong:first-child { display: block; margin-bottom: 2px; }
+.callout p { margin: 4px 0; }
+.concept { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 14px 18px; margin: 20px 0; }
+.concept .k { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+.concept p { margin: 6px 0; }
+.side { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 820px) { .side { grid-template-columns: 1fr 1fr; } }
+.side > div { min-width: 0; }
+.side .cap { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: -6px; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; margin: 16px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+.tablewrap { overflow-x: auto; }
+figure { margin: 24px 0; }
+figure svg { width: 100%; height: auto; display: block; }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
+.svg-text { fill: var(--text); font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.svg-muted { fill: var(--muted); font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.svg-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+.svg-line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.svg-dash { stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.phases { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0; }
+@media (min-width: 720px) { .phases { grid-template-columns: repeat(3, 1fr); } }
+.phase { border: 1px solid var(--border); border-top: 4px solid; border-radius: 8px; padding: 12px 14px; background: var(--surface); }
+.phase h4 { margin: 0 0 4px; font-size: 16px; }
+.phase p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.phase.c { border-top-color: var(--phase-construct); }
+.phase.s { border-top-color: var(--phase-synth); }
+.phase.d { border-top-color: var(--phase-deploy); }
+dl.gloss dt { font-weight: 700; margin-top: 14px; }
+dl.gloss dd { margin: 2px 0 0 0; color: var(--text); max-width: 74ch; }
+.foot { margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Contents">
+  <div class="label">Contents</div>
+  <ol>
+    <li><a href="#model">The mental model</a></li>
+    <div class="ph tag pre">Before CDK runs</div>
+    <li><a href="#s1">1. npm run deploy</a></li>
+    <li><a href="#s2">2. The CDK CLI reads cdk.json</a></li>
+    <div class="ph tag construct">Construct</div>
+    <li><a href="#s3">3. new cdk.App()</a></li>
+    <li><a href="#s4">4. planApp: plain TypeScript</a></li>
+    <li><a href="#s5">5. new DataStack(…)</a></li>
+    <li><a href="#s6">6. Inside DataStack</a></li>
+    <li><a href="#s7">7. ApiStack and cross-stack refs</a></li>
+    <li><a href="#s8">8. AuthStack</a></li>
+    <li><a href="#s9">9. WebStack</a></li>
+    <div class="ph tag synth">Synthesize</div>
+    <li><a href="#s10">10. The cloud assembly</a></li>
+    <div class="ph tag deploy">Deploy</div>
+    <li><a href="#s11">11. Assets and CloudFormation</a></li>
+    <div class="ph tag pre">Around the edges</div>
+    <li><a href="#tests">Tests</a></li>
+    <li><a href="#try">Try it yourself</a></li>
+    <li><a href="#gloss">Glossary</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="tag pre">dlp-access-next-cdk · infra/</div>
+  <h1>Learning AWS CDK by tracing one deploy</h1>
+  <p class="lede">We follow a single command from the moment you press Enter until CloudFormation has built the tables, search domain, API and website. At each step: what code runs, what CDK is doing underneath, and the CDK idea it illustrates.</p>
+</header>
+
+<h2 id="model">The mental model</h2>
+<p>CDK is <strong>not</strong> a deployment engine. It is a library plus a CLI that lets an ordinary TypeScript program <em>write CloudFormation templates</em>. CloudFormation, the AWS service, still does the creating, updating and deleting. Everything in this repo's <code>infra/</code> boils down to three phases:</p>
+
+<div class="phases">
+  <div class="phase c"><h4>1 · Construct</h4><p>Your TypeScript runs. Each <code>new Something(this, 'Id', props)</code> adds a node to an in-memory tree. Nothing touches AWS.</p></div>
+  <div class="phase s"><h4>2 · Synthesize</h4><p>CDK walks the tree and writes a <em>cloud assembly</em> to <code>cdk.out/</code>: one CloudFormation template per stack, plus zipped “assets”.</p></div>
+  <div class="phase d"><h4>3 · Deploy</h4><p>The CLI uploads the assets to S3 and hands each template to CloudFormation, in dependency order. CloudFormation makes the API calls.</p></div>
+</div>
+
+<p>The command we will trace is the one in <code>CLAUDE.md</code> that deploys an environment's backend:</p>
+<pre><code>cd infra
+npm run deploy -- -c env=dev -c account=$ACCOUNT -c userPool=us-east-1_XXXX</code></pre>
+<p>Along the way we will also look at what changes when you add <code>-c branch=…</code> to get a Web stack.</p>
+
+<figure>
+<svg viewBox="0 0 860 300" role="img" aria-label="Flow from npm run deploy through the CDK CLI, the app process, cdk.out and CloudFormation">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/>
+    </marker>
+  </defs>
+  <rect class="svg-box" x="10" y="20" width="170" height="70" rx="8"/>
+  <text class="svg-text" x="95" y="50" text-anchor="middle" font-weight="600">bin/deploy.ts</text>
+  <text class="svg-muted" x="95" y="70" text-anchor="middle">validate · check · confirm</text>
+
+  <rect class="svg-box" x="230" y="20" width="170" height="70" rx="8"/>
+  <text class="svg-text" x="315" y="50" text-anchor="middle" font-weight="600">cdk CLI</text>
+  <text class="svg-muted" x="315" y="70" text-anchor="middle">npx cdk deploy --all</text>
+
+  <rect class="svg-box" x="450" y="20" width="190" height="70" rx="8" style="stroke: var(--phase-construct)"/>
+  <text class="svg-text" x="545" y="50" text-anchor="middle" font-weight="600">bin/appsync.ts</text>
+  <text class="svg-muted" x="545" y="70" text-anchor="middle">child process: build tree</text>
+
+  <rect class="svg-box" x="450" y="130" width="190" height="70" rx="8" style="stroke: var(--phase-synth)"/>
+  <text class="svg-text" x="545" y="160" text-anchor="middle" font-weight="600">cdk.out/</text>
+  <text class="svg-muted" x="545" y="180" text-anchor="middle">templates + assets</text>
+
+  <rect class="svg-box" x="230" y="210" width="170" height="70" rx="8" style="stroke: var(--phase-deploy)"/>
+  <text class="svg-text" x="315" y="240" text-anchor="middle" font-weight="600">S3 asset bucket</text>
+  <text class="svg-muted" x="315" y="260" text-anchor="middle">Lambda zips, source bundle</text>
+
+  <rect class="svg-box" x="670" y="210" width="180" height="70" rx="8" style="stroke: var(--phase-deploy)"/>
+  <text class="svg-text" x="760" y="240" text-anchor="middle" font-weight="600">CloudFormation</text>
+  <text class="svg-muted" x="760" y="260" text-anchor="middle">Data → Api, Auth → Web</text>
+
+  <path class="svg-line" d="M180,55 L228,55" marker-end="url(#arr)"/>
+  <path class="svg-line" d="M400,55 L448,55" marker-end="url(#arr)"/>
+  <text class="svg-muted" x="424" y="44" text-anchor="middle">spawns</text>
+  <path class="svg-line" d="M545,90 L545,128" marker-end="url(#arr)"/>
+  <text class="svg-muted" x="555" y="114">synth writes</text>
+  <path class="svg-dash" d="M450,165 L315,165 L315,90" marker-end="url(#arr)"/>
+  <text class="svg-muted" x="330" y="150">CLI reads</text>
+  <path class="svg-line" d="M330,165 L330,165"/>
+  <path class="svg-line" d="M315,165 L315,208" marker-end="url(#arr)"/>
+  <text class="svg-muted" x="200" y="196">1. publish assets</text>
+  <path class="svg-line" d="M640,180 L760,180 L760,208" marker-end="url(#arr)"/>
+  <text class="svg-muted" x="660" y="172">2. deploy templates</text>
+</svg>
+<figcaption>Who calls whom. The blue box is where your stack code runs; it never talks to AWS (with one exception, lookups, in step 9).</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<div class="step pre" id="s1"><span class="num">1</span><h2><code>npm run deploy</code>: a guard in front of CDK</h2></div>
+<div class="tag pre">Before CDK runs · infra/bin/deploy.ts</div>
+<p><code>package.json</code> maps <code>deploy</code> to <code>ts-node bin/deploy.ts</code>. This script is the project's own; plain <code>npx cdk deploy</code> would skip it. It does four things:</p>
+<ol>
+  <li><strong>Parses the arguments</strong> (<code>deployArgs</code>, <code>contextFromArgs</code>). It merges the <code>context</code> block of <code>cdk.json</code> with your <code>-c key=value</code> flags, the same precedence CDK itself uses.</li>
+  <li><strong>Runs the app's own validation</strong>: <code>planApp(optionsFromContext(...))</code>. This is the exact function the CDK app calls in step 4, so a typo like <code>-c env=staging</code> fails here before anything slow happens.</li>
+  <li><strong>Checks what is already deployed</strong> (<code>lib/deploy-check.ts</code>) with the <code>aws</code> CLI, listing each stack as <em>create</em>, <em>update</em> or <em>busy</em> and warning about risky changes.</li>
+  <li><strong>Asks for confirmation</strong>, then spawns the real thing:</li>
+</ol>
+<div class="file">infra/bin/deploy.ts</div>
+<pre><code>const result = spawnSync('npx', ['cdk', 'deploy', '--all', ...args], { cwd: INFRA_DIR, stdio: 'inherit' });</code></pre>
+<div class="callout">
+  <strong>CDK idea: the app can't ask questions</strong>
+  <p>The CDK CLI runs your app with stdin closed, so an interactive prompt can't live inside the stacks. That is why this confirmation is a separate wrapper script.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="step pre" id="s2"><span class="num">2</span><h2>The CDK CLI reads <code>cdk.json</code></h2></div>
+<div class="tag pre">Before CDK runs · infra/cdk.json</div>
+<p><code>cdk deploy</code> first needs a cloud assembly, so it has to run your program. It finds out how from <code>cdk.json</code>:</p>
+<div class="file">infra/cdk.json (abridged)</div>
+<pre><code>{
+  <span class="hl">"app": "npx ts-node --prefer-ts-exts bin/appsync.ts",</span>
+  "context": {
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/core:defaultCrossStackReferences": "strong",
+    ...
+  }
+}</code></pre>
+<ul>
+  <li><strong><code>app</code></strong> is just a shell command. The CLI runs it as a child process and passes along your context and an output directory through environment variables (<code>CDK_CONTEXT_JSON</code>, <code>CDK_OUTDIR</code>). This is why CDK commands must run from <code>infra/</code>: elsewhere there is no <code>cdk.json</code>, hence “<code>--app is required</code>”.</li>
+  <li><strong><code>context</code></strong> holds key/value settings visible to the app. The <code>@aws-cdk/...</code> keys are <em>feature flags</em>: switches that opt a project into newer, sometimes breaking, default behaviors. They live in the repo so every machine synthesizes identical templates.</li>
+</ul>
+<p>A third source of context, <code>cdk.context.json</code>, caches lookup results. We will meet it in step 9.</p>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s3"><span class="num">3</span><h2><code>new cdk.App()</code>: the root of the tree</h2></div>
+<div class="tag construct">Construct phase · infra/bin/appsync.ts</div>
+<div class="file">infra/bin/appsync.ts — the entire entry point</div>
+<pre><code>const app = new cdk.App();
+buildApp(app, optionsFromContext((key) =&gt; app.node.tryGetContext(key)));</code></pre>
+<p>Six lines, but they set up everything that follows.</p>
+<div class="concept">
+  <div class="k">Concept · the construct tree</div>
+  <p>Every CDK object is a <strong>construct</strong>, and every construct has exactly one parent (its <em>scope</em>) and an <em>id</em> unique among its siblings. <code>App</code> is the root. Stacks are children of the app; resources are children of stacks; higher-level constructs have their own children. Each construct is reachable through <code>.node</code>, which knows its path, children, dependencies and context.</p>
+  <p><code>app.node.tryGetContext('env')</code> reads <code>-c env=dev</code>. Any construct can read context, but this repo reads it once at the root and passes plain values down. That makes the stacks easy to test without the CLI.</p>
+</div>
+<p>When this file finishes running, the App's <code>synth()</code> runs automatically (the App registers itself to synthesize on process exit when the CLI has set <code>CDK_OUTDIR</code>). So the whole construct phase is simply: <em>run <code>buildApp</code> to completion</em>.</p>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s4"><span class="num">4</span><h2><code>planApp</code>: it's just TypeScript</h2></div>
+<div class="tag construct">Construct phase · infra/lib/app.ts</div>
+<p>Before any AWS concept appears, <code>buildApp</code> calls <code>planApp</code>, which is pure logic: validate the account ID, resolve the environment, decide which stacks exist.</p>
+<div class="file">infra/lib/app.ts</div>
+<pre><code>const config = resolveEnvironment(options.env, production);   <span class="c">// lib/environments.ts</span>
+...
+const prefix = `DlpAccessNext-${config.name}`;
+const provision = options.branch === undefined || backend === 'provision';
+...
+dataStackName: provision ? `${prefix}-Data` : undefined,
+apiStackName:  provision ? `${prefix}-Api`  : undefined,
+authStackName: provision ? `${prefix}-Auth` : undefined,
+webStackName:  branch === undefined ? undefined : `DlpAccessNext-Web-${branch}`,</code></pre>
+<p><code>resolveEnvironment('dev', false)</code> returns an <code>EnvironmentConfig</code> that merges dev's settings (region <code>us-east-1</code>, <code>RemovalPolicy.RETAIN</code>) with the standard sizing (one <code>t3.small.search</code> node). A feature environment like <code>f-search</code> gets dev's settings except <code>RemovalPolicy.DESTROY</code>.</p>
+<div class="callout">
+  <strong>CDK idea: use the language, not a template language</strong>
+  <p>In raw CloudFormation, “three environments with slightly different settings” means parameters, conditions and <code>Fn::If</code>. In CDK it is an object literal and a function. The <em>decision</em> happens at synth time, so each environment's template is plain and fully resolved: dev's template contains <code>"DeletionPolicy": "Retain"</code>, with no conditions.</p>
+</div>
+<p>Context values come in as strings: <code>-c production=true</code> arrives as <code>"true"</code>. That is why <code>booleanContext</code> accepts both forms.</p>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s5"><span class="num">5</span><h2><code>new DataStack(app, id, props)</code></h2></div>
+<div class="tag construct">Construct phase · infra/lib/app.ts → buildApp</div>
+<div class="file">infra/lib/app.ts</div>
+<pre><code>const env = { account: plan.account, region: config.region };
+
+data = new DataStack(app, plan.dataStackName, { env, config });
+api  = new ApiStack(app, plan.apiStackName, {
+  env, config,
+  <span class="hl">tables: data.tables,</span>
+  <span class="hl">searchDomain: data.searchDomain,</span>
+});</code></pre>
+<div class="concept">
+  <div class="k">Concept · the (scope, id, props) signature</div>
+  <p>Every construct constructor takes the same three arguments. <strong>scope</strong> is the parent (<code>app</code> here, <code>this</code> inside a stack). <strong>id</strong> names it within that parent; for a Stack, it also becomes the CloudFormation stack name, e.g. <code>DlpAccessNext-dev-Data</code>. <strong>props</strong> is a typed bag of settings. <code>DataStackProps extends StackProps</code>, which adds the repo's own <code>config</code> to CDK's standard stack options.</p>
+</div>
+<div class="concept">
+  <div class="k">Concept · stack environments</div>
+  <p>Passing <code>env: { account, region }</code> makes the stack <em>environment-specific</em>: the template is pinned to that account and region, and CDK may query the account at synth time (lookups) and use real availability zones. Without <code>env</code>, a stack is “environment-agnostic” and those features are off. This repo always pins it, which is why <code>-c account</code> is required.</p>
+</div>
+<p>Note the highlighted lines: <code>ApiStack</code> receives <strong>objects</strong> from <code>DataStack</code>, not names. That turns out to matter a lot. See step 7.</p>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s6"><span class="num">6</span><h2>Inside <code>DataStack</code>: L2 constructs</h2></div>
+<div class="tag construct">Construct phase · infra/lib/data-stack.ts</div>
+
+<h3>6a. Tables: one line of intent, a page of CloudFormation</h3>
+<p>The constructor loops over <code>MODELS</code> and creates seven <code>dynamodb.Table</code>s. Here is what you write, and the CloudFormation that <code>synth</code> produced for Archive in a sample <code>f-demo</code> environment:</p>
+<div class="side">
+  <div>
+    <div class="cap">You write (data-stack.ts)</div>
+<pre><code>const table = new dynamodb.Table(this, `${model}Table`, {
+  tableName: tableName(model, config.name),
+  partitionKey: { name: 'id', type: STRING },
+  billingMode: PAY_PER_REQUEST,
+  stream: NEW_AND_OLD_IMAGES,
+  deletionProtection: retain,
+  pointInTimeRecoverySpecification:
+    { pointInTimeRecoveryEnabled: retain },
+  removalPolicy: config.removalPolicy,
+});
+for (const index of GLOBAL_INDEXES[model]) {
+  table.addGlobalSecondaryIndex({
+    indexName: index.indexName,
+    partitionKey: { name: index.partitionKey, type: STRING },
+    projectionType: ProjectionType.ALL,
+  });
+}</code></pre>
+  </div>
+  <div>
+    <div class="cap">CDK emits (DlpAccessNext-f-demo-Data.template.json)</div>
+<pre><code>"<span class="hl">ArchiveTable4E5864BF</span>": {
+  "Type": "AWS::DynamoDB::Table",
+  "Properties": {
+    "AttributeDefinitions": [
+      { "AttributeName": "id", "AttributeType": "S" },
+      { "AttributeName": "identifier", ... },
+      { "AttributeName": "collectionArchivesId", ... }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "GlobalSecondaryIndexes": [ ...2 indexes... ],
+    "KeySchema": [{ "AttributeName": "id", "KeyType": "HASH" }],
+    "StreamSpecification":
+      { "StreamViewType": "NEW_AND_OLD_IMAGES" },
+    "TableName": "Archive-dlpnext-f-demo"
+  },
+  "UpdateReplacePolicy": "Delete",
+  "DeletionPolicy": "Delete",
+  "Metadata": {
+    "aws:cdk:path": "DlpAccessNext-f-demo-Data/ArchiveTable/Resource"
+  }
+}</code></pre>
+  </div>
+</div>
+<p>Things to notice:</p>
+<ul>
+  <li><strong>CDK filled in <code>AttributeDefinitions</code></strong> from the partition keys of the table and its indexes. In raw CloudFormation you would maintain that list by hand.</li>
+  <li><strong>The construct is mutable until synth.</strong> <code>addGlobalSecondaryIndex</code> is called after construction and still lands in the same resource. Nothing is “sent” when you call <code>new</code>.</li>
+  <li><strong>The logical ID</strong> <code>ArchiveTable4E5864BF</code> is the construct path plus a hash of it. CloudFormation identifies resources by logical ID, so <strong>renaming or moving a construct's id replaces the resource</strong>. For a table, that means a new, empty table.</li>
+  <li><strong><code>removalPolicy</code> became <code>DeletionPolicy</code>.</strong> For <code>f-demo</code> it is <code>Delete</code>; for <code>dev</code> it would be <code>Retain</code>, so CloudFormation leaves the table behind when the stack is destroyed.</li>
+</ul>
+<div class="concept">
+  <div class="k">Concept · L1, L2, L3</div>
+  <p><strong>L1</strong> constructs (<code>CfnTable</code>, <code>CfnEnvironment</code>) are generated one-to-one from the CloudFormation spec: every property, no defaults, no helpers. <strong>L2</strong> constructs (<code>dynamodb.Table</code>, <code>lambda.Function</code>, <code>opensearch.Domain</code>) wrap an L1 with sensible defaults, typed enums and methods like <code>grant…</code>. An L2 creates its L1 as a child called <code>Resource</code>, which is why the path ends in <code>/ArchiveTable/Resource</code>. <strong>L3</strong> constructs (“patterns”) compose several resources; <code>cr.Provider</code> below is one.</p>
+</div>
+
+<h3>6b. The OpenSearch domain</h3>
+<p><code>new opensearch.Domain(this, 'SearchDomain', {...})</code> reads its sizing straight from <code>config.search</code>. That is how <code>-c production=true</code> turns into three <code>m7g.medium.search</code> nodes across three AZs. Its <code>removalPolicy</code> is hard-coded to <code>DESTROY</code>, so the domain goes with the stack in every environment while the tables follow <code>config</code>.</p>
+
+<h3>6c. A Lambda with local code: your first asset</h3>
+<div class="file">infra/lib/data-stack.ts</div>
+<pre><code>const indexTemplateFn = new lambda.Function(this, 'IndexTemplateFunction', {
+  runtime: lambda.Runtime.PYTHON_3_12,
+  handler: 'index.on_event',
+  <span class="hl">code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambda', 'opensearch-index-template')),</span>
+  environment: {
+    <span class="hl">OPENSEARCH_ENDPOINT: domain.domainEndpoint,</span>
+    ...
+  },
+});</code></pre>
+<div class="concept">
+  <div class="k">Concept · assets</div>
+  <p>A template can't contain a directory of Python. <code>Code.fromAsset</code> tells CDK: “at synth, copy this directory into <code>cdk.out</code> and fingerprint it; at deploy, zip it and upload it to the bootstrap bucket; in the template, point the function at that S3 key.” The fingerprint is a content hash, so the Lambda updates only when the files change.</p>
+</div>
+<div class="concept">
+  <div class="k">Concept · tokens (the most important idea in CDK)</div>
+  <p><code>domain.domainEndpoint</code> is not a URL. The domain doesn't exist yet. It is a <strong>token</strong>: a placeholder string such as <code>${Token[TOKEN.312]}</code> that CDK tracks. At synth it is replaced with CloudFormation's own reference, <code>{"Fn::GetAtt": ["SearchDomainFDC494A0", "DomainEndpoint"]}</code>, which CloudFormation resolves at deploy time. Consequences:</p>
+  <p>• You can pass tokens around, put them in strings and store them in props, and they still work.<br>
+  • You <em>cannot</em> inspect them in TypeScript: <code>if (domain.domainEndpoint.startsWith('search-'))</code> is meaningless at construct time.<br>
+  • A token also records <em>which resource it came from</em>. CDK uses that to work out dependencies automatically.</p>
+</div>
+
+<h3>6d. Permissions by method call</h3>
+<pre><code>domain.grantPathReadWrite('_index_template/*', indexTemplateFn);</code></pre>
+<p>This one line adds an <code>AWS::IAM::Policy</code> to the function's auto-created execution role, allowing <code>es:ESHttpGet/Put/…</code> on <code>&lt;domain ARN&gt;/_index_template/*</code>. CDK's <code>grant*</code> methods are why the synthesized Data stack has 2 roles and 2 policies you never declared.</p>
+
+<h3>6e. A custom resource: running code during the deploy</h3>
+<pre><code>const indexTemplateProvider = new cr.Provider(this, 'IndexTemplateProvider', {
+  onEventHandler: indexTemplateFn,
+});
+for (const model of SEARCHABLE_MODELS) {
+  new CustomResource(this, `${model}IndexTemplate`, {
+    serviceToken: indexTemplateProvider.serviceToken,
+    properties: { TemplateName: `dlpnext-${index}`, IndexPatterns: [index],
+                  Mappings: JSON.stringify(searchMappings(index)) },
+  });
+}</code></pre>
+<p>CloudFormation knows how to create an OpenSearch <em>domain</em> but not an <em>index template inside it</em>. A <strong>custom resource</strong> fills the gap. When CloudFormation reaches this resource, it invokes a Lambda with a Create, Update or Delete event and the properties above. <code>lambda/opensearch-index-template/index.py</code> then makes a SigV4-signed <code>PUT _index_template/dlpnext-archive</code>. <code>cr.Provider</code> is the L3 “provider framework”: it adds a second, CDK-supplied Lambda that handles CloudFormation's response protocol, which is why the Data stack has two functions.</p>
+<p>Note that <code>searchMappings(index)</code> runs <strong>at synth time</strong>. It parses <code>schema/schema.graphql</code> in TypeScript and bakes the resulting JSON into the template. If the schema changes, the property changes, which triggers an Update event.</p>
+
+<h3>6f. Outputs</h3>
+<pre><code>new CfnOutput(this, 'SearchDomainEndpoint', { value: domain.domainEndpoint });</code></pre>
+<p>Stack outputs are printed after <code>cdk deploy</code> and visible in the console and through <code>aws cloudformation describe-stacks</code>. <code>deploy-check.ts</code> reads them this way.</p>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s7"><span class="num">7</span><h2><code>ApiStack</code> and cross-stack references</h2></div>
+<div class="tag construct">Construct phase · infra/lib/api-stack.ts</div>
+<p>The Api stack builds the AppSync API. One call wires a table into it:</p>
+<pre><code>acc[model] = api.addDynamoDbDataSource(`${model}DataSource`, <span class="hl">tables[model]</span>);</code></pre>
+<p><code>tables[model]</code> belongs to a <em>different stack</em>. Its <code>tableName</code> token points at a resource in <code>DlpAccessNext-dev-Data</code>, and one CloudFormation template can't <code>Ref</code> a resource in another template. At synth time, CDK notices and rewrites both sides:</p>
+<div class="side">
+  <div>
+    <div class="cap">Producer: Data stack gains an Output with an Export</div>
+<pre><code>"ExportsOutputRefArchiveTable4E5864BF16DAEC2E": {
+  "Value": { "Ref": "ArchiveTable4E5864BF" },
+  "Export": {
+    "Name": "DlpAccessNext-f-demo-Data:ExportsOutputRef
+             ArchiveTable4E5864BF16DAEC2E"
+  }
+}</code></pre>
+  </div>
+  <div>
+    <div class="cap">Consumer: Api stack imports it</div>
+<pre><code>"VtdlpApiArchiveDataSource00754320": {
+  "Type": "AWS::AppSync::DataSource",
+  "Properties": {
+    "DynamoDBConfig": {
+      "TableName": {
+        "Fn::ImportValue": "DlpAccessNext-f-demo-Data:
+           ExportsOutputRefArchiveTable4E5864BF16DAEC2E"
+      }
+    }, ...</code></pre>
+  </div>
+</div>
+<p>CDK also records that <strong>Api depends on Data</strong>, so <code>cdk deploy --all</code> deploys Data first. In the sample synth, the Data stack has 18 such <code>ExportsOutput…</code> entries: table names, ARNs, stream ARNs and the domain endpoint.</p>
+<div class="callout warn">
+  <strong>The catch with exports</strong>
+  <p>CloudFormation refuses to delete or change an export while another stack imports it. If you stop using a table in the Api stack, the Data stack can't drop the export until Api is updated first. This “deadly embrace” is the main reason the <em>Web</em> stack uses a different mechanism (step 9).</p>
+</div>
+
+<h3>7a. Generated resolver code</h3>
+<pre><code>jsResolver('Query', `get${model}`, dataSources[model], getByIdCode());</code></pre>
+<p><code>getByIdCode()</code> (in <code>lib/resolvers.ts</code>) returns a JavaScript <em>string</em>, and <code>appsync.Code.fromInline</code> puts it in the template verbatim. Here is the synthesized result:</p>
+<pre><code>"QuerygetArchiveResolverF3D41FAD": {
+  "Type": "AWS::AppSync::Resolver",
+  "Properties": {
+    "ApiId": { "Fn::GetAtt": ["VtdlpApi1EE3EB61", "ApiId"] },
+    "Code": "import { util } from '@aws-appsync/utils';\n\nexport function request(ctx) {\n  return { operation: 'GetItem', ... }",
+    "DataSourceName": "ArchiveDataSource",
+    "FieldName": "getArchive",
+    "Runtime": { "Name": "APPSYNC_JS", "RuntimeVersion": "1.0.0" },
+    "TypeName": "Query"
+  },
+  <span class="hl">"DependsOn": ["VtdlpApiArchiveDataSource00754320", "VtdlpApiSchemaA45B1951"]</span>
+}</code></pre>
+<p>The loops over <code>MODELS</code> make 26 resolvers out of about 80 lines. Note the <code>DependsOn</code>, which CDK added because the resolver must wait for its data source and the schema. You rarely write ordering by hand inside a stack, because the references imply it.</p>
+
+<h3>7b. Implicit roles everywhere</h3>
+<p>The synthesized Api stack has <strong>68 resources</strong>, 12 of them IAM roles and 11 policies, even though <code>api-stack.ts</code> declares exactly one role (<code>EbInstanceRole</code>). The rest come from L2 defaults: each <code>addDynamoDbDataSource</code> creates a service role for AppSync and grants it read/write on the table; <code>lambda.Function</code> creates an execution role; <code>addEventSource(new DynamoEventSource(...))</code> grants the function stream-read permissions and creates an <code>EventSourceMapping</code>; <code>SqsDlq</code> grants send on the queue. Finally:</p>
+<pre><code>api.grant(ebRole, appsync.IamResource.all(), 'appsync:GraphQL');</code></pre>
+<p>This is the only thing that lets the Next.js server call the API.</p>
+
+<h3>7c. Publishing a value by name</h3>
+<pre><code>new ssm.StringParameter(this, 'GraphQLApiUrlParameter', {
+  parameterName: graphqlApiUrlParameterName(config.name),   <span class="c">// /dlp-access-next/dev/graphql-api-url</span>
+  stringValue: api.graphqlUrl,                              <span class="c">// a token</span>
+});</code></pre>
+<p>The Api stack writes its URL into SSM Parameter Store under a <em>predictable name</em>. Keep this in mind for step 9.</p>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s8"><span class="num">8</span><h2><code>AuthStack</code>: the smallest stack</h2></div>
+<div class="tag construct">Construct phase · infra/lib/auth-stack.ts</div>
+<p>Two <code>ssm.StringParameter</code>s and two outputs; 3 resources after synth, counting CDK's metadata resource. It records the user pool ID and identity provider name. The pool itself is <strong>not</strong> managed by CDK.</p>
+<div class="callout">
+  <strong>CDK idea: a stack is a unit of deployment and lifecycle</strong>
+  <p>Why a whole stack for two parameters? Because stacks are what you deploy, update and destroy as a unit. The repo's split by lifecycle is a common CDK design: <strong>Data</strong> is stateful and rarely changes, <strong>Api</strong> is stateless and changes often, <strong>Auth</strong> is configuration, and <strong>Web</strong> is per branch and disposable. Tearing down Api never risks the tables.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="step construct" id="s9"><span class="num">9</span><h2><code>WebStack</code>: imports, lookups and side effects</h2></div>
+<div class="tag construct">Construct phase · infra/lib/web-stack.ts (only with <code>-c branch=…</code>)</div>
+<p>The Web stack shows the most CDK techniques in one file. When you add <code>-c branch=$(git branch --show-current)</code>, <code>buildApp</code> creates it and, if the backend is in the same app, orders it explicitly:</p>
+<pre><code>web = new WebStack(app, plan.webStackName, { env, config, branch, ... });
+for (const stack of [api, auth]) {
+  if (stack) <span class="hl">web.addStackDependency(stack);</span>
+}</code></pre>
+<p>Why explicit? Because the Web stack holds <strong>no object references</strong> to Api or Auth, so CDK can't infer the order. It is designed to work when those stacks were deployed from a <em>different</em> CDK run (<code>backend=attach</code>), where no objects exist to reference.</p>
+
+<h3>9a. Code that runs at synth time</h3>
+<pre><code>const commit = sourceCommit();                    <span class="c">// git rev-parse HEAD</span>
+git('archive', '--format=tar', `--output=${archive}`, commit, '--', ...pathspecs);
+execFileSync('tar', ['-xf', archive, '-C', source]);
+this.sourceBundle = new s3assets.Asset(this, 'SourceBundle', { path: source });</code></pre>
+<p>Your constructor is ordinary Node.js and can do anything: shell out to git, read files, compute. Here it exports HEAD to a temp directory and makes it an <code>s3assets.Asset</code>, the same asset mechanism as the Lambda code, except Beanstalk consumes it. The asset hash changes with every commit, so every new commit is a new application version.</p>
+<div class="callout warn">
+  <strong>Keep synth deterministic</strong>
+  <p>Synth-time side effects are fine as long as the same inputs give the same template. Reading HEAD is deterministic per commit. Something like <code>Date.now()</code> in a property would make every synth look like a change.</p>
+</div>
+
+<h3>9b. L1 constructs when there's no L2</h3>
+<pre><code>const application = new elasticbeanstalk.<span class="hl">CfnApplication</span>(this, 'Application', {...});
+const version     = new elasticbeanstalk.<span class="hl">CfnApplicationVersion</span>(this, 'Version', {
+  sourceBundle: { s3Bucket: this.sourceBundle.s3BucketName, s3Key: this.sourceBundle.s3ObjectKey },
+});
+version.addResourceDependency(application);</code></pre>
+<p>Elastic Beanstalk has no L2, so this file uses the raw <code>Cfn*</code> classes. You lose the conveniences. Properties refer to the application <em>by name</em> (a plain string), not by token, so CDK can't see the relationship, and you add the <code>DependsOn</code> yourself with <code>addResourceDependency</code>. The big <code>settings</code> object flattened into <code>optionSettings</code> is just TypeScript producing the array the L1 property wants.</p>
+
+<h3>9c. Finding the environment by name: SSM parameters resolved at deploy time</h3>
+<pre><code>const apiUrl = ssm.StringParameter.<span class="hl">valueForStringParameter</span>(this, graphqlApiUrlParameterName(config.name));</code></pre>
+<p>This is the counterpart to step 7c, and the alternative to an export. It does <em>not</em> read SSM during synth. It adds a CloudFormation <strong>Parameter</strong> of type <code>AWS::SSM::Parameter::Value&lt;String&gt;</code> whose default is the parameter name, and returns a token that refers to it. CloudFormation looks up the current value <strong>when the stack deploys</strong>. If the Api stack was never deployed, that lookup fails: “Unable to fetch parameters”.</p>
+<div class="tablewrap">
+<table>
+  <tr><th></th><th>Export / ImportValue (step 7)</th><th>SSM parameter by name (step 9)</th></tr>
+  <tr><td>How you write it</td><td>Pass the object in props</td><td>Agree on a name, read it with <code>valueForStringParameter</code></td></tr>
+  <tr><td>Ordering</td><td>Inferred automatically</td><td>You add <code>addStackDependency</code> when in the same app</td></tr>
+  <tr><td>Across CDK apps / runs</td><td>No: both stacks must be in one app</td><td>Yes</td></tr>
+  <tr><td>Producer locked while consumed</td><td>Yes (deadly embrace)</td><td>No</td></tr>
+  <tr><td>Value updates propagate</td><td>Blocked while imported</td><td>On the consumer's next deploy</td></tr>
+</table>
+</div>
+
+<h3>9d. Importing existing resources</h3>
+<pre><code>cognito.UserPool.fromUserPoolId(this, 'UserPool', userPoolId)
+iam.Role.fromRoleName(this, 'InstanceRole', ebInstanceProfileName(config.name))</code></pre>
+<p><code>from…</code> methods create a lightweight construct that <em>represents</em> something that already exists. It adds nothing to the template, but it satisfies the same interface (<code>IUserPool</code>, <code>IRole</code>) as a real one, so you can attach a <code>UserPoolClient</code> to it or attach a policy to it. This is how the Web stack adds the <code>ClientSecretRead</code> inline policy to a role owned by the Api stack, and how CDK uses a Cognito pool it never manages. The <code>I</code>-prefixed types (<code>dynamodb.ITable</code> in <code>DataStack.tables</code>) exist so that real and imported resources are interchangeable.</p>
+
+<h3>9e. A context lookup: the one time synth talks to AWS</h3>
+<pre><code>zone: route53.HostedZone.<span class="hl">fromLookup</span>(this, 'HostedZone', { domainName: HOSTED_ZONE }),</code></pre>
+<p>Unlike <code>valueForStringParameter</code>, this needs the answer <em>at synth time</em>, because the zone ID goes into the template as a literal. Here is how it plays out:</p>
+<ol>
+  <li>On the first synth, the value isn't in context. The construct returns a dummy and records a “missing context” entry in the assembly.</li>
+  <li>The CLI sees the missing entry, assumes the bootstrap <em>lookup role</em> in your account, and queries Route 53.</li>
+  <li>It saves the answer to <code>cdk.context.json</code> and runs your app again, which now finds the value.</li>
+</ol>
+<p>Later synths read the cache and never call AWS. The repo git-ignores <code>cdk.context.json</code> because the cached record contains the account ID. To refresh a stale lookup, use <code>cdk context --reset &lt;key&gt;</code>.</p>
+
+<h3>9f. Ordering inside a stack, explicitly</h3>
+<pre><code>environment.node.addDependency(secretRead);</code></pre>
+<p>The Beanstalk environment refers to the secret's ARN, so CDK already orders the <em>secret</em> first, but nothing refers to the <em>policy</em> that lets the instance read it. Without this line, CloudFormation might start an instance before it is allowed to read the secret. <code>node.addDependency</code> works between any two constructs and becomes <code>DependsOn</code> on every resource underneath them.</p>
+
+<!-- ============================================================ -->
+<div class="step synth" id="s10"><span class="num">10</span><h2>Synthesis: the cloud assembly</h2></div>
+<div class="tag synth">Synthesize phase · cdk.out/</div>
+<p><code>buildApp</code> returns, the process is about to exit, and <code>app.synth()</code> runs. In order, it:</p>
+<ol>
+  <li><strong>Prepares</strong> the tree: applies <em>Aspects</em> (visitors that can inspect or modify every construct), resolves cross-stack references into exports and imports (step 7), and works out stack dependencies.</li>
+  <li><strong>Validates</strong>: constructs can register checks, and errors stop synth here.</li>
+  <li><strong>Resolves tokens</strong>: every token becomes <code>Ref</code>, <code>Fn::GetAtt</code>, <code>Fn::ImportValue</code> or a literal.</li>
+  <li><strong>Writes</strong> the assembly.</li>
+</ol>
+<p>Running <code>cdk synth</code> for a sample <code>-c env=f-demo</code> produced:</p>
+<pre><code>cdk.out/
+├── manifest.json                          <span class="c">← index: stacks, their account/region, dependencies, roles</span>
+├── tree.json                              <span class="c">← the construct tree (good for exploring)</span>
+├── DlpAccessNext-f-demo-Data.template.json
+├── DlpAccessNext-f-demo-Data.assets.json  <span class="c">← what to upload, and where</span>
+├── DlpAccessNext-f-demo-Api.template.json
+├── DlpAccessNext-f-demo-Api.assets.json
+├── DlpAccessNext-f-demo-Auth.template.json
+├── ...metadata.json
+└── asset.cb047ab9…/  asset.e16ffb3b…/  …   <span class="c">← staged Lambda directories, named by content hash</span></code></pre>
+<div class="tablewrap">
+<table>
+  <tr><th>Stack</th><th>Resources</th><th>What's in it</th></tr>
+  <tr><td>Data</td><td>17</td><td>7 DynamoDB tables, 1 OpenSearch domain, 2 Lambdas, 2 roles, 2 policies, 2 custom resources, metadata</td></tr>
+  <tr><td>Api</td><td>68</td><td>GraphQL API and schema, 8 data sources, 26 resolvers, 2 Lambdas, 2 event-source mappings, SQS queue, 12 roles, 11 policies, instance profile, SSM parameter</td></tr>
+  <tr><td>Auth</td><td>3</td><td>2 SSM parameters, metadata</td></tr>
+</table>
+</div>
+<p>Each template also has a <code>BootstrapVersion</code> parameter, and <code>manifest.json</code> names roles like <code>cdk-hnb659fds-deploy-role-&lt;account&gt;-us-east-1</code>. Both point at the <strong>bootstrap stack</strong>: a one-time <code>cdk bootstrap</code> per account and region that creates the asset bucket and the roles the CLI uses to deploy. <code>hnb659fds</code> is the default bootstrap qualifier.</p>
+<div class="callout">
+  <strong>Synth is safe; use it constantly</strong>
+  <p>Synth only needs credentials for uncached lookups. The backend stacks have none, so you can synth them with a made-up account ID and read exactly what would be deployed. <code>cdk diff</code> compares that output with what's live.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="step deploy" id="s11"><span class="num">11</span><h2>Deploy: assets, then CloudFormation</h2></div>
+<div class="tag deploy">Deploy phase · CDK CLI → S3 → CloudFormation</div>
+<p>Now the CLI works from <code>cdk.out</code> alone. Your TypeScript is finished.</p>
+<ol>
+  <li><strong>Check bootstrap</strong>: read <code>/cdk-bootstrap/hnb659fds/version</code> and refuse if it's older than the assembly requires.</li>
+  <li><strong>Publish assets</strong> (<code>*.assets.json</code>): zip each <code>asset.*</code> directory and upload it to <code>cdk-hnb659fds-assets-&lt;account&gt;-&lt;region&gt;</code> as <code>&lt;hash&gt;.zip</code>, using the file-publishing role. The templates themselves are uploaded too. A hash that already exists in S3 is skipped.</li>
+  <li><strong>Deploy stacks in dependency order.</strong> <code>--all</code> selects every stack, and the dependency graph orders them:
+    <figure>
+    <svg viewBox="0 0 640 150" role="img" aria-label="Deploy order: Data, then Api; Auth independent; Web after Api and Auth">
+      <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/></marker></defs>
+      <rect class="svg-box" x="10" y="20" width="130" height="44" rx="8"/><text class="svg-text" x="75" y="47" text-anchor="middle">Data</text>
+      <rect class="svg-box" x="230" y="20" width="130" height="44" rx="8"/><text class="svg-text" x="295" y="47" text-anchor="middle">Api</text>
+      <rect class="svg-box" x="230" y="90" width="130" height="44" rx="8"/><text class="svg-text" x="295" y="117" text-anchor="middle">Auth</text>
+      <rect class="svg-box" x="470" y="55" width="150" height="44" rx="8" style="stroke-dasharray: 5 4"/><text class="svg-text" x="545" y="82" text-anchor="middle">Web (with -c branch)</text>
+      <path class="svg-line" d="M140,42 L228,42" marker-end="url(#arr2)"/>
+      <text class="svg-muted" x="184" y="34" text-anchor="middle">exports</text>
+      <path class="svg-dash" d="M360,42 L468,70" marker-end="url(#arr2)"/>
+      <path class="svg-dash" d="M360,112 L468,84" marker-end="url(#arr2)"/>
+      <text class="svg-muted" x="414" y="46" text-anchor="middle">addStackDependency</text>
+    </svg>
+    <figcaption>Solid arrows are inferred from references; dashed arrows are declared by hand.</figcaption>
+    </figure>
+  </li>
+  <li><strong>For each stack</strong>, the CLI assumes the deploy role and creates a CloudFormation <em>change set</em>: the diff between the live stack and the new template. If the change widens IAM permissions or security groups, it stops and asks (<code>--require-approval</code>; the repo's CI path passes <code>never</code>). Then it executes the change set and streams events to your terminal.</li>
+  <li><strong>CloudFormation does the work</strong>, through the <code>cfn-exec-role</code>. It creates resources in the order of the <code>Ref</code>, <code>GetAtt</code> and <code>DependsOn</code> graph, running independent ones in parallel. During the Data stack it invokes the custom-resource Lambda, which installs the index templates. During the Web stack it resolves the SSM parameters and waits for Beanstalk to launch the instance, whose prebuild hook runs <code>next build</code>.</li>
+  <li><strong>On failure</strong>, CloudFormation rolls that stack back to its previous state; stacks that already finished stay deployed. <strong>On success</strong>, the CLI prints the stack's outputs (<code>GraphQLApiUrl</code>, <code>AppUrl</code>, …).</li>
+</ol>
+<div class="callout warn">
+  <strong>What CDK does <em>not</em> do</strong>
+  <p>CDK doesn't track state the way Terraform does. CloudFormation is the state. If someone changes a resource in the console, CDK doesn't know (that's “drift”). And since each deploy is a whole-template diff, a resource you delete from code gets deleted from AWS, unless its <code>DeletionPolicy</code> is <code>Retain</code>, which is exactly why dev, pre-production and production tables use <code>RemovalPolicy.RETAIN</code>.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="tests">Tests: synth without the CLI</h2>
+<p>Because the construct phase is just code, tests can run it directly. <code>test/app.test.ts</code> builds an <code>App</code> in-process and asserts on the result:</p>
+<div class="file">infra/test/app.test.ts</div>
+<pre><code>import { Match, Template } from 'aws-cdk-lib/assertions';
+
+function synth(envName: string) {
+  const { data, api } = buildApp(new App(), { env: envName, account, userPool });
+  return { data: Template.fromStack(data!), api: Template.fromStack(api!) };
+}</code></pre>
+<p><code>Template.fromStack</code> synthesizes one stack in memory and gives you matchers such as <code>hasResourceProperties('AWS::DynamoDB::Table', {...})</code>, <code>resourceCountIs(...)</code> and <code>Match.objectLike(...)</code>. This is the payoff of passing plain values into <code>buildApp</code> instead of reading context deep inside the stacks: the tests need no CLI and no AWS account. Run them with <code>npm test</code>.</p>
+
+<!-- ============================================================ -->
+<h2 id="try">Try it yourself</h2>
+<p>None of these deploy anything. A made-up account ID works for the backend stacks.</p>
+<pre><code>cd infra
+
+<span class="c"># List the stacks the context produces (runs construct + synth)</span>
+npx cdk ls -c env=f-demo -c account=123456789012 -c userPool=us-east-1_Example
+
+<span class="c"># Write the assembly somewhere disposable and read it</span>
+npx cdk synth -c env=f-demo -c account=123456789012 -c userPool=us-east-1_Example -o /tmp/cdkout -q
+less /tmp/cdkout/DlpAccessNext-f-demo-Data.template.json
+
+<span class="c"># Print one stack's template to stdout (YAML)</span>
+npx cdk synth DlpAccessNext-f-demo-Auth -c env=f-demo -c account=123456789012 -c userPool=us-east-1_Example
+
+<span class="c"># Compare with production sizing: watch the OpenSearch ClusterConfig change</span>
+npx cdk synth DlpAccessNext-f-demo-Data ... -c production=true | grep -A8 ClusterConfig
+
+<span class="c"># With real credentials: what would change in the live dev environment?</span>
+npx cdk diff -c env=dev -c account=$ACCOUNT -c userPool=&lt;pool&gt;</code></pre>
+<p>Experiments worth doing:</p>
+<ul>
+  <li>Change a construct id (<code>`${model}Table`</code> to <code>`${model}Tbl`</code>), synth again, and watch the logical IDs change. In a diff, that would show as a table <em>replacement</em>.</li>
+  <li>Add <code>console.log(domain.domainEndpoint)</code> in <code>DataStack</code> to see a raw token.</li>
+  <li>Open <code>tree.json</code> and find <code>DlpAccessNext-f-demo-Api/VtdlpApi/ArchiveDataSource/ServiceRole</code>, a role you never wrote.</li>
+  <li>Synth with <code>-c env=dev</code> and compare the Archive table's <code>DeletionPolicy</code> and <code>DeletionProtectionEnabled</code> with <code>f-demo</code>'s.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="gloss">Glossary</h2>
+<dl class="gloss">
+  <dt>App</dt><dd>Root of the construct tree; one per CDK program run. Synthesizes on exit.</dd>
+  <dt>Construct</dt><dd>Any node in the tree. Signature <code>(scope, id, props)</code>. Its path determines the logical ID.</dd>
+  <dt>Stack</dt><dd>A construct that becomes one CloudFormation stack and template; the unit of deployment.</dd>
+  <dt>L1 / L2 / L3</dt><dd>Raw <code>Cfn*</code> resource / curated resource with defaults and grants / multi-resource pattern.</dd>
+  <dt>Props</dt><dd>The typed settings object passed to a construct.</dd>
+  <dt>Context</dt><dd>Key/value inputs from <code>-c</code>, <code>cdk.json</code> and <code>cdk.context.json</code>; read with <code>node.tryGetContext</code>.</dd>
+  <dt>Feature flag</dt><dd>A <code>@aws-cdk/…</code> context key that opts the project into newer default behavior.</dd>
+  <dt>Token</dt><dd>A placeholder for a value known only at deploy time; becomes <code>Ref</code>, <code>GetAtt</code> and so on at synth.</dd>
+  <dt>Logical ID</dt><dd>A resource's name inside its template (e.g. <code>ArchiveTable4E5864BF</code>). Changing it means replacing the resource.</dd>
+  <dt>Removal policy</dt><dd>What CloudFormation does with a resource when it leaves the template or the stack is destroyed: <code>DESTROY</code> or <code>RETAIN</code>.</dd>
+  <dt>Asset</dt><dd>Local files (Lambda code, the app bundle) that CDK stages, hashes and uploads to S3 during deploy.</dd>
+  <dt>Cross-stack reference</dt><dd>Using one stack's resource in another stack in the same app; implemented as Export and <code>Fn::ImportValue</code>, and implies a dependency.</dd>
+  <dt>Import (<code>from…</code>)</dt><dd>A reference to an existing resource that adds nothing to the template.</dd>
+  <dt>Lookup</dt><dd>A synth-time query of your AWS account (e.g. <code>HostedZone.fromLookup</code>), cached in <code>cdk.context.json</code>.</dd>
+  <dt>Custom resource</dt><dd>A Lambda that CloudFormation calls on create, update and delete, for things CloudFormation can't do natively.</dd>
+  <dt>Cloud assembly</dt><dd>The output of synth (<code>cdk.out/</code>): templates, asset manifests, staged assets and <code>manifest.json</code>.</dd>
+  <dt>Bootstrap</dt><dd>The one-time <code>CDKToolkit</code> stack per account and region: asset bucket, deploy, lookup and execution roles.</dd>
+  <dt>Change set</dt><dd>CloudFormation's preview of a stack update; <code>cdk deploy</code> creates and executes one per stack.</dd>
+</dl>
+
+<div class="foot">Traced against branch <code>whunter/appsync</code> at commit 136c4d4 · resource counts and template excerpts are from <code>cdk synth -c env=f-demo</code> with a placeholder account · 2026-10-20</div>
+</main>
+</div>
+</body>
+</html>
