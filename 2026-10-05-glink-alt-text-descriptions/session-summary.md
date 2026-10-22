@@ -20,11 +20,11 @@ written out.
 
 All in `/Users/whunter/dev/dlp/assets/glink/docs/`:
 
-| File | Change |
-| --- | --- |
+| File                                 | Change                                                                                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `20261005_archive_consolidation.csv` | `alt_text` and `visual_description` filled for 127 single-image records. All other columns verified unchanged against a pre-write copy. |
-| `glink002121.csv` | New. 2 rows: front and back of the beach watercolor. |
-| `glink002128.csv` | New. 7 rows: one per silhouette. |
+| `glink002121.csv`                    | New. 2 rows: front and back of the beach watercolor.                                                                                    |
+| `glink002128.csv`                    | New. 7 rows: one per silhouette.                                                                                                        |
 
 Per-record file columns: `identifier, page, image_id, alt_text, visual_description`. `image_id` is the tile
 set name, for example `glink002128-3`.
@@ -39,18 +39,18 @@ Sixteen rows in the consolidation CSV still have blank descriptions:
 
 Sketchbook descriptions were not written to the project directory.
 
-| Sketchbook | Pages in S3 | Pages described |
-| --- | --- | --- |
-| `glink001001` | 51 | 51 |
-| `glink001002` | 58 | 58 |
-| `glink001003` | 89 | 54 (pages 55–72 were viewed but never recorded) |
-| `glink001004` | 50 | 0 |
-| `glink001005` | 64 | 0 |
-| `glink001006` | 14 | 0 |
-| `glink001007` | 43 | 0 |
-| `glink001008` | 5 | 0 |
-| `glink001009` | 7 | 0 |
-| `glink001010` | 19 | 0 |
+| Sketchbook    | Pages in S3 | Pages described                                 |
+| ------------- | ----------- | ----------------------------------------------- |
+| `glink001001` | 51          | 51                                              |
+| `glink001002` | 58          | 58                                              |
+| `glink001003` | 89          | 54 (pages 55–72 were viewed but never recorded) |
+| `glink001004` | 50          | 0                                               |
+| `glink001005` | 64          | 0                                               |
+| `glink001006` | 14          | 0                                               |
+| `glink001007` | 43          | 0                                               |
+| `glink001008` | 5           | 0                                               |
+| `glink001009` | 7           | 0                                               |
+| `glink001010` | 19          | 0                                               |
 
 The 163 sketchbook descriptions that were recorded are preserved in `descriptions_in_progress.tsv` in this
 directory, along with the 136 non-sketchbook rows that were delivered.

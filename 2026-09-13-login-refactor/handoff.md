@@ -3,6 +3,7 @@
 **Date:** 2026-09-13 (updated same day, fourth pass — added logout.sh)
 **Session:** login-refactor
 **Files touched:**
+
 - `/Users/whunter/dev/scripts/login.sh`
 - `/Users/whunter/dev/scripts/logout.sh` (new)
 - `/Users/whunter/.aliases` (added `logout` alias)
@@ -30,7 +31,7 @@ aws sts get-caller-identity
 
 It unsets exactly the three variables `login.sh` exports, then reuses the
 same `aws sts get-caller-identity` check `login.sh -check` uses — but now
-to confirm the *absence* of authentication rather than its presence.
+to confirm the _absence_ of authentication rather than its presence.
 
 Added an alias in `~/.aliases`, right next to `login`:
 
@@ -57,7 +58,7 @@ The user's actual invocation path is the `login` alias already defined in
 alias login=". /Users/whunter/dev/scripts/login.sh"
 ```
 
-That's a *source* (`.`) into the current interactive shell — which, per
+That's a _source_ (`.`) into the current interactive shell — which, per
 this environment, is **zsh**, not bash. Because it's sourced, `export`
 correctly persists into the calling shell for both `login` and
 `login -check` (both go through the same alias, same sourced file, same
@@ -96,7 +97,7 @@ shell, so it still works if ever invoked under bash too.
 ### 2. (Reverted) `~/.aws/credentials` persistence
 
 A previous pass had `login.sh` call `aws configure set ...` to persist
-credentials to `~/.aws/credentials` so a `-check` run in a *separate*
+credentials to `~/.aws/credentials` so a `-check` run in a _separate_
 process (`bash ./login.sh -check`) could find them. This is no longer
 needed or wanted: the user wants plain env vars only, using the existing
 `login` alias (which sources, so a separate process was never actually

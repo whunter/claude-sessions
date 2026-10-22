@@ -40,7 +40,7 @@
   - creates `$HOME/.aliases` if missing, and appends the `login`/`logout`
     alias lines only if not already present (idempotent — safe to re-run),
   - never calls `exit` on failure paths implicitly beyond `set -euo
-    pipefail`; on success prints a confirmation message and a reminder to
+pipefail`; on success prints a confirmation message and a reminder to
     `source ~/.aliases`.
   - Intended one-line invocation:
     `curl -fsSL https://raw.githubusercontent.com/whunter/shell-tools/login/out/aws/install.sh | bash`

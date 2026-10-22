@@ -13,7 +13,7 @@ Repo: `~/dev/dlp/access/dlp-access-next-cdk`, branch `whunter/search-field-types
 3. **Check sorting on a live domain.** Two things are only tested against a stub of AppSync's `util`:
    - OpenSearch accepting a numeric `missing` value (`±9007199254740991`) on a date/boolean sort.
    - OpenSearch accepting a number in `search_after` for a date/boolean field.
-   Sort `fulltextArchives` by `end_date` both ways and page past items with no `end_date`.
+     Sort `fulltextArchives` by `end_date` both ways and page past items with no `end_date`.
 4. Push the branch and open a PR when ready.
 
 ## State to know about

@@ -16,13 +16,13 @@ The rest of the adverse implications are behaviour, accessibility, and maintenan
 
 ## How this was checked
 
-| Check | Result |
-|---|---|
-| `npm run build` | Fails: type error at `src/app/browse/[[...slug]]/page.tsx:32` |
-| `npx tsc --noEmit` | 2 errors, both in the browse page (lines 32 and 38) |
-| `npm run lint` | 9 errors, 2 warnings |
-| `gh pr checks 21` | One check, `deploy-preview`, skipped |
-| Browser testing | Not done |
+| Check              | Result                                                        |
+| ------------------ | ------------------------------------------------------------- |
+| `npm run build`    | Fails: type error at `src/app/browse/[[...slug]]/page.tsx:32` |
+| `npx tsc --noEmit` | 2 errors, both in the browse page (lines 32 and 38)           |
+| `npm run lint`     | 9 errors, 2 warnings                                          |
+| `gh pr checks 21`  | One check, `deploy-preview`, skipped                          |
+| Browser testing    | Not done                                                      |
 
 Everything else in this document comes from reading the diff. Items that depend on browser behaviour are marked "not reproduced".
 
@@ -32,20 +32,20 @@ Everything else in this document comes from reading the diff. Items that depend 
 
 ### Root layout and home page
 
-| File | Change |
-|---|---|
-| `src/app/layout.tsx` | Removes the Geist fonts loaded through `next/font`. Wraps every page in `<Header />`, `<main>`, `<Footer />`. Imports `vars.css` and `globals.css`. Sets the page title to "VT Digital Library Platform". |
-| `src/app/page.tsx` | Replaces the starter page with an `<h1>` and one placeholder sentence. |
-| `src/app/globals.css` | Deleted. It held the only `@import "tailwindcss"`. |
+| File                  | Change                                                                                                                                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/layout.tsx`  | Removes the Geist fonts loaded through `next/font`. Wraps every page in `<Header />`, `<main>`, `<Footer />`. Imports `vars.css` and `globals.css`. Sets the page title to "VT Digital Library Platform". |
+| `src/app/page.tsx`    | Replaces the starter page with an `<h1>` and one placeholder sentence.                                                                                                                                    |
+| `src/app/globals.css` | Deleted. It held the only `@import "tailwindcss"`.                                                                                                                                                        |
 
 Every page now gets the same header, footer, and `<main>` landmark, so pages return only their own content.
 
 ### Shared styles (`src/app/_styles/`)
 
-| File | Change |
-|---|---|
-| `vars.css` | Design tokens as CSS custom properties: VT brand colours, colour roles (`--primaryColor`, `--textColor`, and so on), font families, focus outlines, radii, padding, size limits, a 44px minimum touch target, and transition timings. |
-| `globals.css` | Page skeleton (body is a three-row grid: header, content, footer), width limits on `<main>` at four breakpoints, a `.visually-hidden` utility, global focus rings, and a dark-mode override of the background and text colours. |
+| File          | Change                                                                                                                                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vars.css`    | Design tokens as CSS custom properties: VT brand colours, colour roles (`--primaryColor`, `--textColor`, and so on), font families, focus outlines, radii, padding, size limits, a 44px minimum touch target, and transition timings. |
+| `globals.css` | Page skeleton (body is a three-row grid: header, content, footer), width limits on `<main>` at four breakpoints, a `.visually-hidden` utility, global focus rings, and a dark-mode override of the background and text colours.       |
 
 ### Header (`src/app/_components/header/`)
 
@@ -61,10 +61,10 @@ The Browse menu links to `/browse`, `/browse/collections`, `/browse/formats`, `/
 
 ### Search (`src/app/_components/search/`)
 
-| File | Change |
-|---|---|
+| File                             | Change                                                                                                                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `SearchBar.tsx`, `SearchBar.css` | A `<search>` landmark holding a plain GET form that submits to `/search?q=...`. It has a hidden label and a magnifying-glass submit button. It works without JavaScript. |
-| `SearchResults.tsx` | A stub that renders "[Search Results]". Nothing uses it yet. |
+| `SearchResults.tsx`              | A stub that renders "[Search Results]". Nothing uses it yet.                                                                                                             |
 
 ### Icons (`src/app/_components/icons/`)
 
@@ -72,27 +72,27 @@ The Browse menu links to `/browse`, `/browse/collections`, `/browse/formats`, `/
 
 ### Footer (`src/app/_components/footer/`)
 
-| File | Change |
-|---|---|
-| `Footer.tsx` | A `<footer>` wrapping `VTLibFooter`. |
+| File                                   | Change                                                                                                                                                                                                                             |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Footer.tsx`                           | A `<footer>` wrapping `VTLibFooter`.                                                                                                                                                                                               |
 | `vtlib-footer/VTLibFooter.tsx`, `.css` | The shared VT University Libraries footer, copied in as static markup and CSS (766 lines, 27 links). The PR asks reviewers not to review it. Its stylesheet also declares the `Acherus` font, loaded from `www.assets.cms.vt.edu`. |
 
 ### Routes
 
 All pages are placeholders (an `<h1>` and one sentence) except Accessibility.
 
-| Route | File | Behaviour |
-|---|---|---|
-| `/` | `page.tsx` | Home placeholder |
-| `/about` | `about/page.tsx` | Placeholder |
-| `/about/metadata` | `about/metadata/page.tsx` | Placeholder |
-| `/about/permissions` | `about/permissions/page.tsx` | Placeholder |
-| `/about/platform` | `about/platform/page.tsx` | Placeholder. Not linked from the header. |
-| `/accessibility` | `accessibility/page.tsx` | Static text copied from the production site |
-| `/feedback` | `feedback/page.tsx` | Placeholder |
-| `/browse/...` | `browse/[[...slug]]/page.tsx` | One page for all browse views. The first path segment picks the view (`all`, `collections`, `items`, `formats`, `locations`, `partners`); anything else falls back to "Everything". |
-| `/collection/[slug]` | `collection/[slug]/page.tsx` | Echoes the slug |
-| `/item/[slug]`, `/archive/[slug]` | `item/[slug]/page.tsx`, `archive/[slug]/page.tsx` | Both render the shared `ItemArchivePage` component, which echoes the slug. Two routes exist so legacy `/archive/` links keep working. |
+| Route                             | File                                              | Behaviour                                                                                                                                                                           |
+| --------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                               | `page.tsx`                                        | Home placeholder                                                                                                                                                                    |
+| `/about`                          | `about/page.tsx`                                  | Placeholder                                                                                                                                                                         |
+| `/about/metadata`                 | `about/metadata/page.tsx`                         | Placeholder                                                                                                                                                                         |
+| `/about/permissions`              | `about/permissions/page.tsx`                      | Placeholder                                                                                                                                                                         |
+| `/about/platform`                 | `about/platform/page.tsx`                         | Placeholder. Not linked from the header.                                                                                                                                            |
+| `/accessibility`                  | `accessibility/page.tsx`                          | Static text copied from the production site                                                                                                                                         |
+| `/feedback`                       | `feedback/page.tsx`                               | Placeholder                                                                                                                                                                         |
+| `/browse/...`                     | `browse/[[...slug]]/page.tsx`                     | One page for all browse views. The first path segment picks the view (`all`, `collections`, `items`, `formats`, `locations`, `partners`); anything else falls back to "Everything". |
+| `/collection/[slug]`              | `collection/[slug]/page.tsx`                      | Echoes the slug                                                                                                                                                                     |
+| `/item/[slug]`, `/archive/[slug]` | `item/[slug]/page.tsx`, `archive/[slug]/page.tsx` | Both render the shared `ItemArchivePage` component, which echoes the slug. Two routes exist so legacy `/archive/` links keep working.                                               |
 
 There is no `/search` route. The PR description says it is in progress.
 

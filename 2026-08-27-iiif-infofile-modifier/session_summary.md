@@ -20,6 +20,7 @@
 Old approach: list every S3 object under `<collection_prefix>/<tiles_dir_name>/` and pattern-match on key shape — no actual knowledge of which items belong to the collection.
 
 New approach:
+
 1. **`findCollectionID`** — scans `collection_table` (DynamoDB) via `dynamodb.NewScanPaginator` with `FilterExpression: "identifier = :identifier"` for the record matching `collection_identifier` (config), returns its `id` attribute. Errors on zero or >1 matches, or a missing/non-string `id`.
 2. **`findArchiveIdentifiers`** — scans `archive_table` with `FilterExpression: "parent_collection = :parent_collection"` matching that `id`, collects each matching record's `identifier` attribute (deduplicated). Non-fatal: a record missing `identifier` is logged as a warning and skipped, not a hard failure.
 3. **`findInfoObjects`** (reworked) — for each archive identifier, lists S3 objects under `<tilesPrefix><identifier>-` and keeps the ones exactly one directory level deep named `info.json` — same matching logic as before, just scoped per-identifier instead of unscoped across the whole tiles directory. An identifier with zero S3 subdirectories (tiles not yet generated) simply contributes nothing.
@@ -42,7 +43,7 @@ This approach was replaced in a follow-on session (2026-08-28) — see "Rollback
 
 ## Skip-already-transformed design (data-loss fix)
 
-`isAlreadyTransformed(data []byte) (bool, error)` inspects `profile[1]` for a `formats` key — a shape only this tool's own output ever has (via the hardcoded `requiredProfile`/`profileExtra`). `runTransform` was restructured into three phases: (1) download every discovered key and classify each as skip/pending via `isAlreadyTransformed`, incrementing a new `skipped` counter for already-corrected files; (2) back up only the pending (still-original) files — if any backup fails, abort before modifying anything, as before; (3) transform and upload only the pending files. This prevents a second run over the same collection from backing up an already-corrected file over the true original and losing data like `sizes` — which is exactly what happened to the user before this fix (confirmed by inspecting the `backup_info.json` they provided, which matched the *output* format instead of the input format). Verified via `TestIsAlreadyTransformed`.
+`isAlreadyTransformed(data []byte) (bool, error)` inspects `profile[1]` for a `formats` key — a shape only this tool's own output ever has (via the hardcoded `requiredProfile`/`profileExtra`). `runTransform` was restructured into three phases: (1) download every discovered key and classify each as skip/pending via `isAlreadyTransformed`, incrementing a new `skipped` counter for already-corrected files; (2) back up only the pending (still-original) files — if any backup fails, abort before modifying anything, as before; (3) transform and upload only the pending files. This prevents a second run over the same collection from backing up an already-corrected file over the true original and losing data like `sizes` — which is exactly what happened to the user before this fix (confirmed by inspecting the `backup_info.json` they provided, which matched the _output_ format instead of the input format). Verified via `TestIsAlreadyTransformed`.
 
 ## Verification
 
@@ -50,9 +51,10 @@ This approach was replaced in a follow-on session (2026-08-28) — see "Rollback
 
 ## Rollback refactor (2026-08-28 follow-on session)
 
-While spot-testing keys directly against the real dev bucket (`s3://ingest-dev.img.cloud.lib.vt.edu/federated/glink/tiles/...`, via manual `aws s3 cp ... -` reads — `glink001001-1`, `glink001001-2`, `glink002129-1` were all confirmed to be correctly processed: `info.json` in output format, `backup_info.json` in valid pre-transform format), the user asked whether rollback would be better implemented as a copy-based restore (like `aws s3 mv backup_info.json info.json`) rather than JSON reconstruction. Reasoning discussed and agreed: it's both faster (fewer round trips — no need to download/reconstruct/re-upload the current `info.json`, just validate the backup and server-side copy it) and more correct (restores the *actual* original bytes rather than an approximation reconstructed from hardcoded `supports` values, which could be wrong if any real original ever had different `supports`).
+While spot-testing keys directly against the real dev bucket (`s3://ingest-dev.img.cloud.lib.vt.edu/federated/glink/tiles/...`, via manual `aws s3 cp ... -` reads — `glink001001-1`, `glink001001-2`, `glink002129-1` were all confirmed to be correctly processed: `info.json` in output format, `backup_info.json` in valid pre-transform format), the user asked whether rollback would be better implemented as a copy-based restore (like `aws s3 mv backup_info.json info.json`) rather than JSON reconstruction. Reasoning discussed and agreed: it's both faster (fewer round trips — no need to download/reconstruct/re-upload the current `info.json`, just validate the backup and server-side copy it) and more correct (restores the _actual_ original bytes rather than an approximation reconstructed from hardcoded `supports` values, which could be wrong if any real original ever had different `supports`).
 
 Implemented:
+
 - Removed `rollbackInfoJSON` and its supporting types (`rollbackProfile`, `rollbackProfileExtra`, `rollbackSize`, `backupSizes`, `rollbackTile`, `rollbackInfo`).
 - Added `isPreTransformShape(data []byte) (bool, error)` — the inverse check of `isAlreadyTransformed`: confirms a non-empty `sizes` array and no `formats` key in `profile[1]`.
 - Renamed `backupObject` → `copyObject` (now used bidirectionally: original→backup during transform, backup→original during rollback).
@@ -68,6 +70,7 @@ After the rollback refactor above, the user ran the tool live against the real c
 The user then asked whether the tool takes advantage of Go's concurrency model, since all S3/DynamoDB work was strictly sequential. Assessment: yes, meaningfully — per-key work (download/backup/transform/upload, or the rollback sequence) is independent across keys and pure I/O-bound network calls, so a bounded worker pool should cut wall-clock time roughly in proportion to concurrency for any collection with more than a handful of keys.
 
 Implemented:
+
 - Added `runConcurrent(n, concurrency int, fn func(i int))` — a generic bounded worker pool (semaphore channel + `sync.WaitGroup`) that calls `fn(i)` for each index, letting each call write its result into a pre-sized slice at its own index (no locking needed) so results can be logged afterward in original key order despite running out of order.
 - Parallelized `findInfoObjects`'s per-archive-identifier S3 listing.
 - Parallelized `runTransform`'s three phases: classify (download + `isAlreadyTransformed`), backup (`copyObject`), and transform+upload — each phase's network calls run concurrently, then results are aggregated/logged sequentially afterward.

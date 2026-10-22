@@ -1,14 +1,16 @@
 # Handoff — iawa-url-fix
 
 ## Context
+
 Builds on `2026-09-13-iawa-migration-plan` (which flattened IAWA collection
-directory layouts on S3). This session found and fixed a *content* problem
+directory layouts on S3). This session found and fixed a _content_ problem
 left over from that flattening: embedded URLs inside the IIIF JSON docs
 themselves were stale — wrong domain, and (for most collections) still
 pointing at deleted nested `Box`/`Folder` paths. See `session-summary.md` for
 the full investigation and rollout log.
 
 ## Where the tool lives
+
 `~/dev/dlp/ingest/vtdlp-aws-tools/go/migrate-tool/` (same module as
 `iawa-migrate` from the prior session). New subcommand: `fix-urls`.
 
@@ -18,6 +20,7 @@ go build -o iawa-migrate .
 ```
 
 ## Current state (as of session end)
+
 **All 11 collections are done.** Every collection with content (10 of 11;
 `Ms2005_002_Treder` has none) has been rewritten live and re-verified clean:
 
@@ -31,6 +34,7 @@ required unless new content is added to the bucket in the old
 domain/path-nesting style.
 
 ## How `fix-urls` works
+
 - `-collection NAME [-bucket NAME] [-concurrency N] [-dry-run] [-verify]`
 - Discovers every `manifest.json`, `info.json`, `canvas/*.json`,
   `annotation/*.json`, `sequence/*.json` under `iawa/<Collection>/`.
@@ -57,12 +61,14 @@ domain/path-nesting style.
   one-off Python audit script used earlier in this session.
 
 ## If new stale content shows up later
+
 Just re-run `fix-urls -collection <Name>` (live) then `-verify` — it's
 idempotent, so there's no harm running it again even on already-clean
 content, and no `-delete`/collision handling to worry about since this tool
 never moves or deletes objects, only edits JSON content in place.
 
 ## Known gaps / out of scope (carried over, not addressed this session)
+
 - `collection/top.json` manifest-list files were **not** touched by
   `fix-urls` — the prior session flagged these as already
   inconsistent/incomplete in production and unconfirmed whether they're

@@ -1,6 +1,7 @@
 # Session Summary — cypress-mock-fixtures (2026-09-17)
 
 ## Task
+
 `access/dlp-access` is hosted via AWS Amplify v1, hybrid CLI-managed.
 Its Cypress suite hit the live GraphQL/AppSync API directly, so tests
 would break whenever the underlying database data changed — independent
@@ -15,6 +16,7 @@ those still queried the live backend; this session removes that
 dependency entirely.
 
 ## Approach chosen
+
 Presented with three options, the user picked **cy.intercept + captured
 live data**: run the app against a real dev server once, record every
 GraphQL request/response pair via `cy.intercept`, save them as fixture
@@ -25,6 +27,7 @@ live dependency thereafter.
 ## What was built
 
 ### Capture / replay infrastructure
+
 - **`cypress.config.ts`**: two new Node-side tasks (`setupNodeEvents`) —
   `captureGraphQL` (append/dedupe request+response pairs into per-operation
   JSON files under `cypress/fixtures/graphql/captures/`) and
@@ -48,6 +51,7 @@ live dependency thereafter.
   competing intercept registered elsewhere).
 
 ### The one spec that couldn't use interception at all
+
 `cypress/e2e/api/search_archives_graphql.cy.js` used to call the live
 AppSync API directly via `cy.request()` — which runs Node-side in the
 Cypress process, not through the browser, so `cy.intercept()` can't touch
@@ -58,6 +62,7 @@ with virtually every other query in this app) is `@searchable`. That
 ruled out a local Amplify mock entirely.
 
 Instead, this spec is now a fully local, no-network unit test:
+
 - **`cypress/support/localSearchArchives.js`** — a hand-written
   reimplementation of the resolver's sort/tie-break/pagination contract,
   reverse-engineered from real `nextToken` values captured off the live
@@ -70,8 +75,10 @@ Instead, this spec is now a fully local, no-network unit test:
   over. All test assertions were computed from this real data.
 
 ### Every integration spec (15 files)
+
 Added `cy.mockGraphQL()` immediately before each `cy.visit(...)`. Two
 specs needed more than a straight replay:
+
 - `searchfacet_checkbox.cy.js` / `show_all_less_buttons.cy.js` used to
   mutate a live passthrough response on the fly (via `req.continue`) to
   inject a synthetic "medium" facet for testing. Rewritten to load the
@@ -79,15 +86,18 @@ specs needed more than a straight replay:
   and pass it as an override to `cy.mockGraphQL({ SiteBySiteId: [...] })`.
 
 ### Data-drift fixes (found once mocking made the data static/inspectable)
+
 The Amplify environment changed mid-session (user switched environments
 before the live capture pass), so a few assertions needed updating to
 match current reality — none of these are related to the mocking work
 itself:
+
 - `browse_collections.cy.js`: root-collection count 11 → 10.
 - `search_bar.cy.js`: "Additions" search 63 → 4 results; "certificate"
   search 20 → 23 results.
 
 ### A real app bug, found and deliberately not "fixed" by hacking the test
+
 `language_config.cy.js`'s second test clicks the first English-language
 archive search result and checks its metadata. Whatever record happened
 to sort first kept 404'ing ("Page Not Found"). Investigation (see below)
@@ -100,6 +110,7 @@ than one level 404'd; a 1-level record worked fine.
 Rather than leave that flaky/broken record wired into a captured fixture,
 the user asked to swap it out for a different, working archive record.
 That was done by:
+
 1. Testing ~6 different English-language archives directly against the
    live dev server (`localhost:3000`) to confirm the pattern and find a
    working, 1-level-hierarchy candidate:
@@ -122,7 +133,9 @@ reproduced live, and is **not fixed** — flagged in the handoff for
 whoever owns that page.
 
 ## Verification
+
 Final clean-slate run:
+
 ```
 npx cypress run --spec "cypress/e2e/integration/**/*.cy.js" --headless --browser electron
 → 41 passing, 0 failing, 0 skipped
@@ -130,6 +143,7 @@ npx cypress run --spec "cypress/e2e/integration/**/*.cy.js" --headless --browser
 CYPRESS_API_TEST_ONLY=true npx cypress run --spec "cypress/e2e/api/**/*.cy.js" --headless --browser electron
 → 5 passing, 0 failing
 ```
+
 Zero live network/database dependency for either suite. (Media asset
 URLs — images, PDFs, 3D models — embedded in the mocked metadata still
 point at real CDN/S3 hosts; that was treated as out of scope for a
@@ -137,6 +151,7 @@ point at real CDN/S3 hosts; that was treated as out of scope for a
 the user as a permanent decision.)
 
 ## Open items for the user
+
 1. Nothing has been committed or pushed — awaiting explicit go-ahead.
 2. The nested-`heirarchy_path` 404 bug is real and unfixed; worth routing
    to whoever owns the archive detail page.

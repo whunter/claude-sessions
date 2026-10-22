@@ -2,19 +2,21 @@
 
 **Date:** 2026-09-01
 **Account(s):** `196766403141` (primary, default profile), `226388486048` (`--profile eb-cli`)
-**Goal:** Given `http://idn.lib.vt.edu/ark:/53696/635c402a` — an API-Gateway-fronted URL that calls a Lambda, which reads DynamoDB, to redirect the user to another page — determine exactly which service instances are *actually* in use, since the account is expected to have multiple candidate deployments.
+**Goal:** Given `http://idn.lib.vt.edu/ark:/53696/635c402a` — an API-Gateway-fronted URL that calls a Lambda, which reads DynamoDB, to redirect the user to another page — determine exactly which service instances are _actually_ in use, since the account is expected to have multiple candidate deployments.
 
 ## Investigation, in order
 
 1. **Confirmed AWS identity/access**: `aws sts get-caller-identity` → account `196766403141`, user `vtdlp-whunter-workload`. This user has broad `List`/`Describe` and CloudWatch read access but is denied `apigateway:GET`, `lambda:ListFunctions`, `iam:List*`, and `tag:GetResources` — so API Gateway/Lambda inventories had to be reconstructed via CloudFormation rather than direct service listing.
 
 2. **Resolved the DNS/CDN chain** for `idn.lib.vt.edu`:
+
    ```
    idn.lib.vt.edu --CNAME--> idn.prod.cloud.lib.vt.edu --CNAME--> d3btzx4iv66c21.cloudfront.net
    ```
+
    A direct `curl` to the URL returned `301` (CloudFront) then `403 MissingAuthenticationTokenException` (API Gateway's "no matching resource" error) on the HTTPS hop — meaning the front-end CloudFront reaches an API Gateway, but the specific probe path didn't route cleanly through it. Flagged as an open thread rather than chased further, since that CloudFront distro isn't in a reachable account.
 
-3. **Searched for the CloudFront distro's owning account.** `aws cloudfront list-distributions` in `196766403141` listed 6 distributions, none matching `d3btzx4iv66c21.cloudfront.net`. The user then pointed out an `eb-cli` AWS CLI profile exists; `aws sts get-caller-identity --profile eb-cli` showed it belongs to a *second* account, `226388486048`. Checked that account's 5 CloudFront distributions too — still no match. The real front-door distribution's account remains unidentified.
+3. **Searched for the CloudFront distro's owning account.** `aws cloudfront list-distributions` in `196766403141` listed 6 distributions, none matching `d3btzx4iv66c21.cloudfront.net`. The user then pointed out an `eb-cli` AWS CLI profile exists; `aws sts get-caller-identity --profile eb-cli` showed it belongs to a _second_ account, `226388486048`. Checked that account's 5 CloudFront distributions too — still no match. The real front-door distribution's account remains unidentified.
 
 4. **Found candidate backend resources via DynamoDB and CloudFormation**, since direct API Gateway/Lambda listing was denied:
    - `aws dynamodb list-tables` surfaced `vtdlp_resser_idn` and `mint` as name-resolution-shaped tables (both keyed on `short_id`), but `dynamodb:GetItem` was denied, so contents couldn't be read directly.
@@ -33,6 +35,7 @@
 ## Conclusion
 
 The `idn.lib.vt.edu` ark-resolution request is served, within account `196766403141`, by:
+
 - **API Gateway:** `ltghm34375` ("Name Resolution Api Gateway", stage `Prod`)
 - **Lambda:** `VTDLP-Resolution-Service-NameResolutionFunction-1IZLCRWFTW5NY`
 - **DynamoDB table:** `mint`

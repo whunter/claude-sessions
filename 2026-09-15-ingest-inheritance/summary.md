@@ -42,6 +42,7 @@ An upfront research pass (via a research subagent) produced a full inventory of 
 ## Final state
 
 Branch `inheritance`, pushed to `origin/inheritance`, working tree clean:
+
 ```
 7dd80d6 Extract IIIF-specific metadata logic and fix 3d_2diiif manifest handling
 1ac65a8 Refactor ingest Generic classes to use inheritance, no functionality change

@@ -10,14 +10,14 @@ Line numbers refer to `30519bb`. Finding 1 is confirmed by `npx tsc --noEmit`. T
 
 ## Suggested order
 
-| Order | Finding | Why |
-|---|---|---|
-| 1 | 1. Browse page type errors | Blocks `next build` |
-| 2 | 2. Search 404 | Broken on every page |
-| 3 | 3. Dropdown closes on click | Affects every mouse and keyboard user of the desktop nav |
-| 4 | 4. Dark mode, 5. Footer link name | Readability and accessibility |
-| 5 | 7. Header selector, 8. Fonts | Cheap now, costly once more pages exist |
-| 6 | 6. Dropdown fallback, 9. Mobile nav state, 10. Leftovers | Lower impact or optional |
+| Order | Finding                                                  | Why                                                      |
+| ----- | -------------------------------------------------------- | -------------------------------------------------------- |
+| 1     | 1. Browse page type errors                               | Blocks `next build`                                      |
+| 2     | 2. Search 404                                            | Broken on every page                                     |
+| 3     | 3. Dropdown closes on click                              | Affects every mouse and keyboard user of the desktop nav |
+| 4     | 4. Dark mode, 5. Footer link name                        | Readability and accessibility                            |
+| 5     | 7. Header selector, 8. Fonts                             | Cheap now, costly once more pages exist                  |
+| 6     | 6. Dropdown fallback, 9. Mobile nav state, 10. Leftovers | Lower impact or optional                                 |
 
 ## 1. Browse page fails type checking
 
@@ -38,8 +38,8 @@ Replace the `Props` interface and the `browseType` calculation:
 type BrowseType = keyof typeof BrowseTypes;
 
 interface Props {
-  params: Promise<{ slug?: string[] }>
-};
+  params: Promise<{ slug?: string[] }>;
+}
 
 function isBrowseType(value: string | undefined): value is BrowseType {
   return value !== undefined && Object.keys(BrowseTypes).includes(value);
@@ -47,9 +47,11 @@ function isBrowseType(value: string | undefined): value is BrowseType {
 ```
 
 ```tsx
-  const { slug } = await params;
-  const firstSegment = slug?.[0];
-  const browseType: BrowseType = isBrowseType(firstSegment) ? firstSegment : 'all';
+const { slug } = await params;
+const firstSegment = slug?.[0];
+const browseType: BrowseType = isBrowseType(firstSegment)
+  ? firstSegment
+  : "all";
 ```
 
 `BrowseTypes[browseType]` on line 38 then type-checks with no further change.
@@ -71,8 +73,8 @@ Add the route, following the naming used by the other pages:
 import SearchResults from "@/app/_components/search/SearchResults";
 
 interface Props {
-  searchParams: Promise<{ q?: string | string[] }>
-};
+  searchParams: Promise<{ q?: string | string[] }>;
+}
 
 /**
  * Search results page for the site search form, which submits its query as `?q=`.
@@ -86,7 +88,7 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <>
       <h1>Search</h1>
-      <SearchResults query={ query } />
+      <SearchResults query={query} />
     </>
   );
 }
@@ -102,7 +104,7 @@ interface Props {
 export default function SearchResults({ query }: Props) {
   return (
     <>
-      <p>[Search Results for "{ query }"]</p>
+      <p>[Search Results for "{query}"]</p>
     </>
   );
 }
@@ -156,11 +158,11 @@ html {
 In `SearchBar.css`, give the input an explicit background so it never depends on the browser default:
 
 ```css
-    input {
-      /* ...existing declarations... */
-      color: var(--vt-hokieStone-8s);
-      background-color: var(--vt-white);
-    }
+input {
+  /* ...existing declarations... */
+  color: var(--vt-hokieStone-8s);
+  background-color: var(--vt-white);
+}
 ```
 
 **Option B: support dark mode.** Replace the hard-coded surface and text colours in `Header.css` and `SearchBar.css` (`--vt-white`, `--vt-hokieStone-8s`, `--vt-smoke-7t`) with the role tokens `--backgroundColor` and `--textColor`, add dark values for link hover and border colours, and check contrast for every pair. This is a design task, not a quick patch.
@@ -197,25 +199,32 @@ Two problems in the `@supports not (...)` block:
 First, remove the gap so the fallback matches the main path, which has none:
 
 ```css
-        @supports not ((position-area: block-end span-inline-start) and (position-try-fallbacks: flip-inline)) {
-          top: anchor(bottom);
-          right: clamp(0.5rem, anchor(right), calc(100vw - var(--dropdown-max-width) - 0.5rem));
-        }
+@supports not (
+  (position-area: block-end span-inline-start) and
+    (position-try-fallbacks: flip-inline)
+) {
+  top: anchor(bottom);
+  right: clamp(
+    0.5rem,
+    anchor(right),
+    calc(100vw - var(--dropdown-max-width) - 0.5rem)
+  );
+}
 ```
 
 Second, position the panel from script when anchor positioning is missing altogether. Popovers render in the top layer, so `position: absolute` relative to the `<li>` is not an option. Inside the `forEach` in `useHoverToOpenDropdowns`, add:
 
 ```ts
-      // Fallback for browsers without CSS anchor positioning
-      const positionWithoutAnchors = (event: Event) => {
-        if (CSS.supports("top", "anchor(bottom)")) return;
-        if ((event as ToggleEvent).newState !== "open") return;
-        const rect = trigger.getBoundingClientRect();
-        panel.style.top = `${rect.bottom}px`;
-        panel.style.right = `${document.documentElement.clientWidth - rect.right}px`;
-      };
+// Fallback for browsers without CSS anchor positioning
+const positionWithoutAnchors = (event: Event) => {
+  if (CSS.supports("top", "anchor(bottom)")) return;
+  if ((event as ToggleEvent).newState !== "open") return;
+  const rect = trigger.getBoundingClientRect();
+  panel.style.top = `${rect.bottom}px`;
+  panel.style.right = `${document.documentElement.clientWidth - rect.right}px`;
+};
 
-      panel.addEventListener("beforetoggle", positionWithoutAnchors);
+panel.addEventListener("beforetoggle", positionWithoutAnchors);
 ```
 
 and remove the listener in the matching cleanup. `beforetoggle` covers both the native click and the script-opened paths. The panel is `position: fixed`, so viewport coordinates are correct; it will not follow the trigger if the page scrolls while open, which is acceptable for a fallback.
@@ -283,36 +292,42 @@ Delete the blocks and the TODO from `VTLibFooter.css`.
 Replace the hook with component state. In `Header`:
 
 ```tsx
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const toggleRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLElement>(null);
+const [mobileNavOpen, setMobileNavOpen] = useState(false);
+const toggleRef = useRef<HTMLButtonElement>(null);
+const menuRef = useRef<HTMLElement>(null);
 
-  // Focus is left where the pointer put it (unlike esc key)
-  useEffect(() => {
-    if (!mobileNavOpen) return;
+// Focus is left where the pointer put it (unlike esc key)
+useEffect(() => {
+  if (!mobileNavOpen) return;
 
-    const handleOutsidePointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (menuRef.current?.contains(target) || toggleRef.current?.contains(target)) return;
-      setMobileNavOpen(false);
-    };
-
-    document.addEventListener("pointerdown", handleOutsidePointerDown);
-    return () => document.removeEventListener("pointerdown", handleOutsidePointerDown);
-  }, [mobileNavOpen]);
-
-  const closeOnEscape = (event: React.KeyboardEvent) => {
-    if (event.key === "Escape" && mobileNavOpen) {
-      setMobileNavOpen(false);
-      toggleRef.current?.focus();
-    }
+  const handleOutsidePointerDown = (event: PointerEvent) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (
+      menuRef.current?.contains(target) ||
+      toggleRef.current?.contains(target)
+    )
+      return;
+    setMobileNavOpen(false);
   };
 
-  // Client-side navigation leaves the menu expanded otherwise
-  const closeOnLinkClick = (event: React.MouseEvent) => {
-    if (event.target instanceof Element && event.target.closest("a")) setMobileNavOpen(false);
-  };
+  document.addEventListener("pointerdown", handleOutsidePointerDown);
+  return () =>
+    document.removeEventListener("pointerdown", handleOutsidePointerDown);
+}, [mobileNavOpen]);
+
+const closeOnEscape = (event: React.KeyboardEvent) => {
+  if (event.key === "Escape" && mobileNavOpen) {
+    setMobileNavOpen(false);
+    toggleRef.current?.focus();
+  }
+};
+
+// Client-side navigation leaves the menu expanded otherwise
+const closeOnLinkClick = (event: React.MouseEvent) => {
+  if (event.target instanceof Element && event.target.closest("a"))
+    setMobileNavOpen(false);
+};
 ```
 
 ```tsx

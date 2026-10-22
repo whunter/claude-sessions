@@ -17,6 +17,7 @@ an archival metadata spreadsheet, so a wrong date is worse than a missing one.
 - Write crops to `SCRATCH/crops/` with names starting with the image_id.
 
 Paths:
+
 - SCRATCH = /private/tmp/claude-502/-Users-whunter-dev-dlp-assets-glink/f90c6e6b-e6d5-41cc-bc57-7ee07072a179/scratchpad
 - VIEW = /private/tmp/claude-502/-Users-whunter-dev-dlp-assets-glink/6151b018-cc84-4238-8d1e-ecd46599c571/scratchpad/glink002/view
 - FULL = /private/tmp/claude-502/-Users-whunter-dev-dlp-assets-glink/150dfe01-5fd3-4556-997f-fb5264712264/scratchpad/full

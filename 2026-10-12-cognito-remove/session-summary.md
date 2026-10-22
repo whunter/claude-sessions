@@ -9,19 +9,23 @@ Remove the option to provision a new Cognito user pool from the infra CDK app, w
 ## What happened
 
 ### 1. Reading the code
+
 - The provisioning lived in `infra/lib/auth-stack.ts` (pool, `admin` group, managed login domain, optional OIDC provider), with its options validated in `planApp` (`infra/lib/app.ts`) and shown by `describePlan` (`infra/lib/deploy.ts`).
 - The frontend side is separate: `infra/lib/web-stack.ts` creates a per-branch app client on whichever pool the environment's SSM parameter names. That was left alone.
 
 ### 2. Removing provisioning (`904ede9`)
+
 - The Auth stack was reduced to the two SSM parameters and two outputs.
 - `-c userPool` became required when an environment's stacks are deployed. The alternative, dropping the Auth stack when no pool is given, would leave Web stacks without the parameters they resolve at deploy time.
 - Removed `-c identityProviderClientId`, `-c identityProviderSecret` and `-c identityProviderIssuer`, and the helpers only they used.
 - Updated the tests (104 pass) and rewrote the relevant parts of `README.md` and `CLAUDE.md`.
 
 ### 3. Clean-up (`2d28cfb`)
+
 - A comment in `web-stack.ts` still said the pool could be "new or existing".
 
 ### 4. Push
+
 - Pushed the branch to origin at the user's request. No pull request was opened.
 
 ## Outcome

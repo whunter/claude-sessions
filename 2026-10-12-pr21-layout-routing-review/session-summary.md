@@ -9,16 +9,19 @@ Learn how to use the `/code-review` skill, run it against the layout and routing
 ## What happened
 
 ### 1. How to call `/code-review`
+
 - It takes an optional target: nothing (the current diff), a branch, a path, or a PR number. An effort level (`low` to `max`, or `ultra`) and the flags `--comment`, `--fix`, and `--max-findings` are optional.
 - By default the only output is a ranked list of findings in the session. `--comment` posts them to the PR and `--fix` applies them to the working tree.
 - A second, unrelated skill with the same short name is installed: `/mattpocock-skills:code-review` reviews against repo standards and the originating spec.
 
 ### 2. The review
+
 - Ran `/code-review layout-and-routing_kellyme`. It returned ten findings.
 - The reviewer could not run `tsc`. Afterwards `npx tsc --noEmit` was run in the repo and confirmed finding 1 with two errors (TS2345 and TS7053) in `src/app/browse/[[...slug]]/page.tsx`.
 - The other nine findings come from reading the code and were not reproduced in a browser.
 
 ### 3. Findings, most severe first
+
 1. Browse page fails strict type checking, which blocks `next build`. Confirmed.
 2. The header search submits to `/search`, which has no page, so it returns a 404.
 3. The desktop dropdown opens on hover or focus, then the following click or Enter closes it.
@@ -31,6 +34,7 @@ Learn how to use the `/code-review` skill, run it against the layout and routing
 10. Tailwind's PostCSS plugin and dependencies, scaffold images, two empty CSS files, and the scaffold metadata description are left over.
 
 ### 4. Running the branch
+
 - `npm install` if needed, then `npm run dev` for http://localhost:3000. `npm run build && npm run start` for the production build.
 
 ## Outcome

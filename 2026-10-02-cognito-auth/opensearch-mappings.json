@@ -1,9 +1,7 @@
 {
   "archive": {
     "templateName": "dlpnext-archive",
-    "indexPatterns": [
-      "archive"
-    ],
+    "indexPatterns": ["archive"],
     "mappings": {
       "dynamic": false,
       "date_detection": false,
@@ -771,9 +769,7 @@
   },
   "collection": {
     "templateName": "dlpnext-collection",
-    "indexPatterns": [
-      "collection"
-    ],
+    "indexPatterns": ["collection"],
     "mappings": {
       "dynamic": false,
       "date_detection": false,

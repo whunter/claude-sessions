@@ -13,6 +13,7 @@ OneDrive, and researched and wrote a new guide for a Staunton address.
 ## What was done
 
 ### Christiansburg guide
+
 1. Created `ballot_guides` on the Desktop and moved `~/ballot-guide-nov-2026.md` there
    as `cburg-ballot-guide-nov-2026.md` (removed from the WSL home folder).
 2. Generated `cburg-ballot-guide-nov-2026.pdf` (4 pages). Fixed the header lines
@@ -20,6 +21,7 @@ OneDrive, and researched and wrote a new guide for a Staunton address.
    Markdown extension.
 
 ### Desktop moved out of OneDrive
+
 3. The Desktop was OneDrive-redirected (`C:\Users\wleeh\OneDrive\Desktop`), so the
    folder was first created there. The user then added a CLAUDE.md rule: never use
    OneDrive in file paths, and flag any file whose path contains OneDrive.
@@ -33,6 +35,7 @@ OneDrive, and researched and wrote a new guide for a Staunton address.
    then restarted Explorer. Windows now reports `C:\Users\wleeh\Desktop`.
 
 ### Staunton guide (35 Woodland Dr, Staunton, VA 24401)
+
 6. Researched and wrote `staunton-ballot-guide-nov-2026.md` and `.pdf` (6 pages):
    - U.S. Senate: Warner (D) vs. Mizusawa (R), text reused from the Christiansburg guide.
    - U.S. House, 6th District: Ben Cline (R, incumbent) vs. Beth Macy (D). Staunton

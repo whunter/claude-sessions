@@ -1,6 +1,7 @@
 # Handoff — iawa-migration-plan
 
 ## Context
+
 Building on the prior `iawa-migration` session (which investigated
 `Ms1990_007_Leviseur` and found leftover duplicate `FolderN/` directories),
 this session covers a broader, related task: all 11 IAWA collections need
@@ -13,6 +14,7 @@ on `Ms1990_025_Rudoff` (see "Current state of Rudoff" below); every other
 collection has only been touched by read-only `discover` runs.
 
 ## Where the tool lives
+
 `~/dev/dlp/ingest/vtdlp-aws-tools/go/migrate-tool/` — a Go module
 (`iawa-migrate`), built and tested against real production S3 data
 (read-only) as of this session. (Originally scaffolded at
@@ -29,12 +31,13 @@ access as `vtdlp-whunter-workload`).
 **Discovery is structural, not name-based.** A directory is classified as
 an "item" if it directly contains `manifest.json`; anything else
 (recursively) is treated as a sub-collection to descend into. This was a
-deliberate choice — sub-collection directories in this bucket are *not*
+deliberate choice — sub-collection directories in this bucket are _not_
 consistently named "Box"/"Folder" (counterexamples found:
 `Ms1992_028_RolledDrawings`, `MapCap13`, `Drawer3`), and nesting depth
 varies from 1–3 levels.
 
 For each item found nested below the collection root, the tool builds:
+
 - **Files**: every object under the item's own directory (`manifest.json`,
   `canvas/*.json`, `annotation/*.json`, `sequence/*.json`) — moved to
   `<CollectionRoot>/<ItemName>/...`, with `.json` files rewritten in
@@ -92,6 +95,7 @@ go build -o iawa-migrate .
 ```
 
 ### `discover` — read-only, inspect what would move
+
 ```bash
 ./iawa-migrate discover -collection Ms1990_025_Rudoff
 # or: go run . discover -collection Ms1990_025_Rudoff
@@ -100,12 +104,14 @@ go build -o iawa-migrate .
 #   -collection NAME   required, e.g. Ms1990_025_Rudoff
 #   -bucket NAME       defaults to vtdlp-pprd.img.cloud.lib.vt.edu
 ```
+
 Prints every item that would move (old path, new path, file/tile-file
 counts) and any warnings (name collisions at the target root, or an item
 whose tile pyramid couldn't be matched). **Zero warnings were found across
 all 11 collections** during this session's investigation.
 
 ### `migrate` — do the move
+
 ```bash
 # ALWAYS dry-run first:
 ./iawa-migrate migrate -collection Ms1991_025_Bliznakov -dry-run
@@ -126,6 +132,7 @@ all 11 collections** during this session's investigation.
 #                       objects (per-item; skipped for any item that had
 #                       a copy/rewrite failure)
 ```
+
 `migrate` refuses to run live (non-dry-run) if `discover` surfaces any
 warnings for that collection — resolve them first, or pass `-dry-run` to
 preview anyway.
@@ -141,14 +148,17 @@ as cleanup-only and, if `-delete` is passed, remove the stale nested
 copies.
 
 ### `verify` — confirm a collection is fully flattened
+
 ```bash
 ./iawa-migrate verify -collection Ms1991_025_Bliznakov
 ```
+
 Re-runs discovery; prints `OK: <collection> has no nested items remaining`
 and exits 0 if there's nothing left to move, otherwise prints the
 remaining plan and exits 1.
 
 ## Current state of Rudoff (needs finishing)
+
 The user's live trial run already happened on `Ms1990_025_Rudoff` (not
 Bliznakov as originally suggested): `migrate -collection Ms1990_025_Rudoff`
 (no `-delete`) ran for real and successfully copied all 54 items to the
@@ -161,6 +171,7 @@ correctly shows all 54 as `[already at root - cleanup only]` with zero
 warnings.
 
 **Next action: spot-check, then finish Rudoff's cleanup.**
+
 1. Manually inspect one or two of the already-migrated root items'
    `manifest.json` in S3 to confirm the rewritten URLs look correct (no
    remaining `Folder`/`Box` path segments).
@@ -174,6 +185,7 @@ warnings.
    CSV — see "Known limitations" below, this isn't automated yet.
 
 ## Recommended next steps
+
 1. Finish Rudoff (above) first, since it's already mid-flight.
 2. Then work through the remaining, fully-legacy collections in ascending
    order of risk/size: Bliznakov (1 item — good next low-risk trial of the
@@ -196,6 +208,7 @@ warnings.
    itself needs the URL-rewrite this tool now does.
 
 ## Known limitations / things not yet built
+
 - No automated update to `collection/top.json` manifests-list entries
   (root-level or per-sub-collection) — inspection this session showed
   these are already inconsistent/incomplete in production (e.g. Rudoff's

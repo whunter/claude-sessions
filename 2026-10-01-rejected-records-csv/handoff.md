@@ -14,14 +14,15 @@ Both are in `../2026-09-30-item-inspection/`:
 1. **Everything in the 2026-09-30 handoff is still open.** `gen2-main` hasn't been pushed, the index templates aren't installed (`GET /_index_template` returns none), and the gen2 `archive` index still has the dynamic mapping with 8,171 of 10,487 documents.
 2. **Decide what to do with the orphaned archives.** They reference four collection IDs that don't exist in gen2:
 
-   | Missing `parent_collection` | Archives |
-   |---|---|
-   | `cebaa240-928c-4c18-93c9-169c1c41ada5` | 69 |
-   | `92441424-3977-4c30-a9f8-011743f26ffb` | 3 |
-   | `5d9ae214-31a7-49a0-b78b-761d9a8f5e72` | 2 |
-   | `this is a string` (test record `3afbef8d-ed06-418b-be72-c61ec2d958fb`) | 1 |
+   | Missing `parent_collection`                                             | Archives |
+   | ----------------------------------------------------------------------- | -------- |
+   | `cebaa240-928c-4c18-93c9-169c1c41ada5`                                  | 69       |
+   | `92441424-3977-4c30-a9f8-011743f26ffb`                                  | 3        |
+   | `5d9ae214-31a7-49a0-b78b-761d9a8f5e72`                                  | 2        |
+   | `this is a string` (test record `3afbef8d-ed06-418b-be72-c61ec2d958fb`) | 1        |
 
    Not checked: whether those collections exist in the pprd Collection table (which would mean the bulk copy missed them) or are missing there too.
+
 3. **Rebuilding the index won't fix orphans.** After the handoff's `--recreate` and backfill, all 75 will be indexed and searchable, but still point to collections that don't exist.
 
 ## State to know about

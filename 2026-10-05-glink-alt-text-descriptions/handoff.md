@@ -12,11 +12,11 @@
 
 ## Files in this directory
 
-| File | Contents |
-| --- | --- |
-| `session-summary.md` | What was done, method, conventions, caveats. |
+| File                           | Contents                                                                                                                                                                                        |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `session-summary.md`           | What was done, method, conventions, caveats.                                                                                                                                                    |
 | `descriptions_in_progress.tsv` | 299 rows, no header: `<identifier>-<page, 3 digits>`, alt text, visual description, tab separated. Covers every non-sketchbook image, sketchbooks 1 and 2 in full, and sketchbook 3 pages 1–54. |
-| `image_urls.txt` | 536 lines: the CloudFront URL used for each page image and the local filename it was saved as. |
+| `image_urls.txt`               | 536 lines: the CloudFront URL used for each page image and the local filename it was saved as.                                                                                                  |
 
 ## To finish the sketchbooks
 
@@ -30,6 +30,7 @@
      `glink001009` (7), `glink001010` (19)
 
    That is 237 images.
+
 4. Write one file per sketchbook, `docs/glink0010NN.csv`, with the same columns as `glink002121.csv`:
    `identifier, page, image_id, alt_text, visual_description`.
 

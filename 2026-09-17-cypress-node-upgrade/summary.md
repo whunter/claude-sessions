@@ -1,19 +1,22 @@
 # Session Summary — cypress-node-upgrade (2026-09-17)
 
 ## Goal
+
 Follow-on to the same-day `2026-09-17-cypress-test-refactor` session (see that
 directory for the full test-rewrite narrative). Question this time: can
 Cypress be upgraded, and how far can Node be upgraded, in
 `access/dlp-access`, without breaking the build?
 
 ## Approach
+
 Rather than just reading changelogs, actually performed each upgrade in the
 working tree, reinstalled dependencies, built the app, and ran the full
 Cypress suite to verify, then decided what to keep based on real results.
 
 ## Cypress upgrade: 13.6.4 → 15.21.1
+
 - First established that this repo's pre-existing need for `npm install
-  --force` is a peer-dependency conflict between `@babylonjs/core@7.x` and
+--force` is a peer-dependency conflict between `@babylonjs/core@7.x` and
   `@babylonjs/gui@8.x` (via `react-babylonjs`) — **entirely unrelated to
   Cypress**. Cypress itself has no peer dependencies, so upgrading it
   doesn't interact with that conflict at all; `--force` is required either
@@ -32,14 +35,16 @@ Cypress suite to verify, then decided what to keep based on real results.
   `cypress/support/commands.js` `cy.signIn` helper reads
   `Cypress.env("password")`), and the Electron test browser is deprecated.
   All 16 spec files failed immediately with `Cypress.env() was removed in
-  Cypress version 16.0.0`. Migrating to 16 would need real test-code
+Cypress version 16.0.0`. Migrating to 16 would need real test-code
   changes (switch to `cy.env()`/`Cypress.expose()`, pick a non-Electron
   browser) — out of scope for "can we upgrade," reverted to 15.x.
 
 ## Node upgrade: how far
+
 Current global/default Node on this machine is `20.17.0` (unchanged —
 tested other versions via `nvm use` in-session only, nothing changed
 system-wide). `nvm` is installed with several other versions available.
+
 - Cypress 13→15.x all declare support for Node ≥20 (`^16 || ^18 || >=20`
   through `^20.1.0 || ^22 || >=24`), so no Node bump was strictly required
   for the 15.x upgrade itself.
@@ -53,8 +58,10 @@ system-wide). `nvm` is installed with several other versions available.
   not-yet-made decision.
 
 ## Result
+
 Two new commits on `whunter-refactor-update-tests` (stacked on the prior
 session's `ec8e008`/`80fd95d`):
+
 - `c6266c2` — "Upgrade Cypress from 13.6.4 to 15.21.1"
   (`package.json`/`package-lock.json`)
 - `92b7bff` — "Ignore Cypress-generated artifacts" (added
@@ -66,6 +73,7 @@ Working tree clean as of end of session. Branch has not been pushed to
 remote (per this repo's convention — push only on explicit request).
 
 ## Open items, not done this session
+
 - Cypress 16.x migration (`Cypress.env()` → `cy.env()`, drop Electron) —
   deferred, real follow-up work if wanted.
 - No `engines`/`.nvmrc` Node pin added.

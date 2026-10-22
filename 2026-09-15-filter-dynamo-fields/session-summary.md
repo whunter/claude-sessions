@@ -1,6 +1,7 @@
 # Session Summary — filter-dynamo-fields (2026-09-15)
 
 ## Goal
+
 `dlp-ingest` repo. The user pointed at
 `/Users/whunter/dev/dlp/assets/iawa/meta/all_values_archive_metadata.csv` — a
 DynamoDB export of an Archive record (generated from record 26 of
@@ -15,6 +16,7 @@ ignore these values if present in an input CSV, and make sure extra/unknown
 fields in general never get passed through to DynamoDB as null.
 
 ## Investigation
+
 Diffed the DynamoDB export's columns against the original source CSV's
 columns to find exactly which fields are DynamoDB/ingest-generated (not
 legitimate source data). Read `ingest_classes/metadata/generic_metadata.py`
@@ -26,7 +28,7 @@ Found the actual root cause of the "nulls passed through" behavior:
 listed in `single_value_headers` or `multi_value_headers` in
 `headers_keys.json`. `set_attribute`'s catch-all `else` branch then
 unconditionally did `dict[lower_attr] = extracted_value`, writing that
-`None` straight into the record dict — which meant *any* unrecognized
+`None` straight into the record dict — which meant _any_ unrecognized
 column (not just the DynamoDB-generated ones) silently became a null
 attribute on `put_item`, or worse, triggered attribute **removal** on
 `update_item_in_table` (which treats `None`/`""` values as "remove this
@@ -40,7 +42,7 @@ final classification.
 Also found, while enumerating headers, that `rights_statement` was missing
 from both header lists entirely (present in the old `legacy_headers_keys.json`
 but dropped from the current one) — meaning it's been silently discarded
-from *every* ingest, not just re-ingested exports. Confirmed no Python code
+from _every_ ingest, not just re-ingested exports. Confirmed no Python code
 references it directly (pure CSV pass-through field), so this was a
 pre-existing, unrelated data-loss bug uncovered by this investigation and
 fixed in the same change.
@@ -54,7 +56,9 @@ to the ignore list and its now-dead special-case branch was deleted (it was
 the only caller of `set_attribute` with `attr == "thumbnail_path"`).
 
 ## Changes made
+
 `data/headers_keys.json`:
+
 - New `ignored_headers` list: `id`, `custom_key`, `__typename`, `createdAt`,
   `updatedAt`, `collection`, `parent_collection`, `heirarchy_path`,
   `manifest_url`, `thumbnail_path`, `item_category`, `collection_category`.
@@ -64,6 +68,7 @@ the only caller of `set_attribute` with `attr == "thumbnail_path"`).
   the DynamoDB-column ask but surfaced by it).
 
 `ingest_classes/metadata/generic_metadata.py`:
+
 - Loads `ignored_headers` (normalized to lowercase/underscore) in `__init__`
   alongside the existing header lists.
 - `process_metadata_and_env` now skips any CSV column whose normalized name
@@ -78,6 +83,7 @@ the only caller of `set_attribute` with `attr == "thumbnail_path"`).
   other caller of `set_attribute` existed).
 
 ## Part 2: schema comparison + missing-field fixes
+
 Follow-up ask: compare `headers_keys.json`'s lists against the `Archive` and
 `Collection` types in
 `/Users/whunter/dev/dlp/access/dlp-access/amplify/backend/api/vtdlp/schema.graphql`
@@ -106,6 +112,7 @@ User asked to add only `taxonomy`, `extracted_text`, and `title_template`
 `collectionOptions`, `ownerinfo` remain unaddressed/out of scope).
 
 Added all three to `multi_value_headers`:
+
 - `taxonomy` and `title_template` are `[String!]` in the schema, matching
   the existing multi-value convention.
 - `extracted_text` is `AWSJSON` in the schema, but follows the same
@@ -117,6 +124,7 @@ Committed as `1cc7361` ("Add taxonomy, extracted_text, title_template to
 headers_keys.json"), not yet pushed.
 
 ## Part 3: unwrap DynamoDB typed values
+
 Follow-up ask: DynamoDB CSV exports store each field's value(s) wrapped in
 the raw AttributeValue JSON shape, e.g. `[{"S":"Article related to
 COVID-19 from Virginia Tech News."}]`, or for a List-type attribute with
@@ -147,8 +155,10 @@ Committed as `479e20e` ("Unwrap DynamoDB typed values in metadata CSV
 ingest"), not yet pushed.
 
 ## Verification
+
 No existing test suite for this module (none found in the repo). Verified
 by:
+
 - `python3 -m py_compile` on the edited file, and `json.load` on the edited
   JSON — both clean.
 - A standalone script (not committed) that loaded the real
@@ -164,7 +174,9 @@ by:
   byte-for-byte unchanged.
 
 ## Status at end of session
+
 Three commits on `dlp-ingest` `dev`, none pushed to origin:
+
 - `d651bb0` — "Ignore DynamoDB-generated columns on metadata ingest"
 - `1cc7361` — "Add taxonomy, extracted_text, title_template to headers_keys.json"
 - `479e20e` — "Unwrap DynamoDB typed values in metadata CSV ingest"
@@ -172,5 +184,6 @@ Three commits on `dlp-ingest` `dev`, none pushed to origin:
 See `handoff.md` for exact commit contents and next steps.
 
 ## Files touched
+
 - `data/headers_keys.json`
 - `ingest_classes/metadata/generic_metadata.py`

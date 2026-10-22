@@ -13,6 +13,7 @@ step that syncs the frontend's baked-in key from SSM instead of trusting
 whatever `amplify push` produced.
 
 Latest commit (pushed to origin):
+
 ```
 41f1e6a Add automatic AppSync API key rotation infra and CI sync step
 ```
@@ -44,6 +45,7 @@ npx cdk deploy \
 ```
 
 This creates, in account `226388486048` / `us-east-1`:
+
 - Lambda `RotateApiKeyFunction` (Node 20.x)
 - EventBridge rule on `rate(1 day)` triggering it
 - IAM role scoped to `appsync:ListApiKeys`/`CreateApiKey`/`DeleteApiKey`
@@ -60,10 +62,12 @@ Optional context overrides (all have defaults — see
 `scheduleExpression` (default `rate(1 day)`).
 
 After deploying, verify:
+
 ```bash
 aws ssm get-parameter --name /vtdlp/dev/appsync/api-key --with-decryption
 aws ssm get-parameter --name /vtdlp/dev/appsync/api-key-expires
 ```
+
 (These won't exist until the Lambda has run at least once — either wait
 for the daily schedule or manually invoke
 `aws lambda invoke --function-name <RotateApiKeyFunction name from the
@@ -88,30 +92,37 @@ To activate, for app `d1n265krqy0ld3` (vtdlp-dev):
 
 1. Add app-level (or branch-level, if you only want this on `dev`)
    environment variable:
+
    ```
    APPSYNC_API_KEY_SSM_PARAM=/vtdlp/dev/appsync/api-key
    ```
+
    Via CLI:
+
    ```bash
    aws amplify update-app --app-id d1n265krqy0ld3 \
      --environment-variables \
        REACT_APP_FEEDBACK_API_ENDPOINT="https://y329wzd07j.execute-api.us-east-1.amazonaws.com/padma",REACT_APP_MINT_API_KEY="CeCfZiApIs2fJXV4B2kwkar6k9GOSVc24j5eXAYQ",REACT_APP_MINT_LINK="https://9hqnlodbdj.execute-api.us-east-1.amazonaws.com/Prod/mint",REACT_APP_REP_TYPE="federated",USER_DISABLE_TESTS="true",_BUILD_TIMEOUT="120",APPSYNC_API_KEY_SSM_PARAM="/vtdlp/dev/appsync/api-key"
    ```
+
    (`update-app --environment-variables` replaces the whole map, so the
    existing vars are re-specified here rather than merged — re-check
    current values with `aws amplify get-app --app-id d1n265krqy0ld3
-   --query app.environmentVariables` before running, in case they've
+--query app.environmentVariables` before running, in case they've
    changed since this session.)
 
 2. Patch the build spec to add the sync step. Current live spec (as of
    this session) is in `summary.md`'s investigation notes / was fetched
    via:
+
    ```bash
    aws amplify get-app --app-id d1n265krqy0ld3 --query app.buildSpec --output text
    ```
+
    Insert `- npm run sync:appsync-key` right before `- REACT_APP_GIT_COMMIT=... npm run build`
    in the `frontend.phases.build.commands` list, then push the full spec
    back with:
+
    ```bash
    aws amplify update-app --app-id d1n265krqy0ld3 --build-spec file://new-buildspec.yml
    ```
@@ -120,8 +131,8 @@ To activate, for app `d1n265krqy0ld3` (vtdlp-dev):
    `src/amplifyconfiguration.json` in the build output has the SSM-sourced
    key, not whatever `amplifyPush` generated — check the build logs for
    the script's own log line: `Synced aws_appsync_apiKey in
-   src/amplifyconfiguration.json from SSM parameter
-   /vtdlp/dev/appsync/api-key`.
+src/amplifyconfiguration.json from SSM parameter
+/vtdlp/dev/appsync/api-key`.
 
 Do task 1 before task 2 — the sync script will hard-fail the build
 (`error: could not read AppSync API key from SSM parameter ...`) if the

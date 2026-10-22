@@ -6,13 +6,13 @@ Pool IDs, client IDs, API URLs and the account ID are deliberately not in this f
 
 ## What changed
 
-| Commit | Change |
-|---|---|
-| `43ac2d7` | `/examples/appsync-queries` requires Cognito sign-in and the `admin` group |
+| Commit    | Change                                                                       |
+| --------- | ---------------------------------------------------------------------------- |
+| `43ac2d7` | `/examples/appsync-queries` requires Cognito sign-in and the `admin` group   |
 | `52bfe19` | New `DlpAccessNext-<env>-Auth` stack; each Web stack gets its own app client |
-| `2bafb95` | `-c identityProvider=<name>`: sign in through a federated provider |
-| `495e762` | The Auth stack can create the OIDC provider on a new pool |
-| `2d9ba20` | Callback route renamed from `/auth/callback` to `/authorize` |
+| `2bafb95` | `-c identityProvider=<name>`: sign in through a federated provider           |
+| `495e762` | The Auth stack can create the OIDC provider on a new pool                    |
+| `2d9ba20` | Callback route renamed from `/auth/callback` to `/authorize`                 |
 
 ### App (root project)
 

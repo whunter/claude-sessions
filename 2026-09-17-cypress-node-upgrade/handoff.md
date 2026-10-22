@@ -1,12 +1,14 @@
 # Handoff — cypress-node-upgrade (2026-09-17)
 
 ## Context
+
 `access/dlp-access` repo, branch `whunter-refactor-update-tests`. Full
 narrative in `summary.md` in this directory. Prior, related session (the
 Cypress test-suite rewrite this branch started with) is in
 `../2026-09-17-cypress-test-refactor/`.
 
 Latest commits (all local, **not pushed**):
+
 ```
 92b7bff Ignore Cypress-generated artifacts
 c6266c2 Upgrade Cypress from 13.6.4 to 15.21.1
@@ -15,9 +17,11 @@ ec8e008 Add cypress/tsconfig.json to fix Cypress ts-node compilation
 ```
 
 ## State
+
 Working tree clean. Nothing pending to commit from this session.
 
 ## Next steps (if picked back up)
+
 1. **If asked to push**: ask before pushing, per this repo's convention
    (this session only committed, did not push).
 2. **If asked to pursue Cypress 16.x**: it's a real migration, not a
@@ -25,7 +29,7 @@ Working tree clean. Nothing pending to commit from this session.
    `cypress/support/commands.js`'s `cy.signIn`, which calls
    `Cypress.env("password")`) and the Electron test browser is deprecated.
    Needs Node ≥22 (already confirmed working on this machine via `nvm use
-   22.23.2`). Migrate call sites to `cy.env()`/`Cypress.expose()`, pick a
+22.23.2`). Migrate call sites to `cy.env()`/`Cypress.expose()`, pick a
    replacement browser, then re-run the full suite to verify.
 3. **If asked to pin a Node version**: no `.nvmrc` or `package.json`
    `engines` field exists yet. Node 22 (Active LTS, "Jod") is confirmed
@@ -36,6 +40,7 @@ Working tree clean. Nothing pending to commit from this session.
    now and why.
 
 ## How to run / verify
+
 1. Start the app against the real AppSync backend (production backend,
    no local backend needed):
    ```
@@ -59,6 +64,7 @@ Working tree clean. Nothing pending to commit from this session.
    ```
 
 ## Key facts for a fresh agent
+
 - The repo's `npm install --force` requirement is caused by an unrelated
   `@babylonjs/core`/`@babylonjs/gui` peer-dependency mismatch, not Cypress.
   It will still be needed regardless of any future Cypress/Node changes
@@ -67,6 +73,7 @@ Working tree clean. Nothing pending to commit from this session.
   from the rest of the dependency tree.
 
 ## Suggested skills
+
 - No special skill needed to continue committing/pushing — normal git
   workflow.
 - **`code-review`** (medium effort) if the next session wants a second

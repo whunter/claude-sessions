@@ -26,12 +26,12 @@ DescribeTable — matching what `DynamoDBCrudPolicy` used to grant).
    - Partition key: `short_id` (S)
    - GSI `long_url-index` on `long_url` (S), full projection
    - Billing mode: PAY_PER_REQUEST
-   If resolution_service's `TargetTableName` is meant to point at this same table, verify
-   the schema resolution_service expects lines up with what mint_service used to create.
+     If resolution_service's `TargetTableName` is meant to point at this same table, verify
+     the schema resolution_service expects lines up with what mint_service used to create.
 3. Only `20260902_mint_service.template` was touched. `20260902_resolution_service.template`
    was read for reference but not modified.
 4. No validation was run against a real `aws cloudformation validate-template` / `sam
-   validate` — only manual inspection (no PyYAML available in this environment to
+validate` — only manual inspection (no PyYAML available in this environment to
    lint the YAML). Worth running `sam validate` or `aws cloudformation validate-template`
    before deploying.
 

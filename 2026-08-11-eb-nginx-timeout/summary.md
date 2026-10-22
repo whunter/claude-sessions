@@ -16,7 +16,7 @@ Platform: Python 3.13 on 64-bit Amazon Linux 2023 (`.elasticbeanstalk/config.yml
 ## Findings
 
 - `.platform/nginx/conf.d/timeout.conf` is correct and necessary — it covers the instance-local nginx-to-gunicorn proxy hop.
-- `.ebextensions/network.config`'s original setting (`aws:elasticbeanstalk:command Timeout`) was a **no-op for this problem**: that namespace controls how long EB waits during *deployments*/health-check-wait, not request-handling timeouts. It doesn't touch the live HTTP path at all.
+- `.ebextensions/network.config`'s original setting (`aws:elasticbeanstalk:command Timeout`) was a **no-op for this problem**: that namespace controls how long EB waits during _deployments_/health-check-wait, not request-handling timeouts. It doesn't touch the live HTTP path at all.
 - Two gaps existed that neither file addressed, both of which matter more than what was committed:
   1. **Gunicorn worker timeout** — `Procfile` had `--timeout 120`. Gunicorn kills and restarts any worker still handling a request past that, independent of nginx's timeout, so anything over 2 minutes would fail at the app-server layer regardless of the nginx config.
   2. **ALB idle timeout** — because the environment is load-balanced, traffic goes client → ALB → instance nginx → gunicorn. The ALB has its own idle timeout (60s default) that is entirely separate from instance-level nginx config, and would return its own 504 before the instance was ever involved.

@@ -1,6 +1,7 @@
 # Handoff — filter-dynamo-fields
 
 ## Context
+
 `dlp-ingest` repo, branch `dev`. Full investigation in `session-summary.md`.
 Three commits made, **none pushed**:
 
@@ -11,7 +12,9 @@ d651bb0 Ignore DynamoDB-generated columns on metadata ingest
 ```
 
 ## What changed
+
 `d651bb0`:
+
 - `data/headers_keys.json` — added `ignored_headers` list; moved
   `__typename` out of `single_value_headers` into it; added the
   previously-missing `rights_statement` to `single_value_headers`.
@@ -22,6 +25,7 @@ d651bb0 Ignore DynamoDB-generated columns on metadata ingest
   removed the dead `thumbnail_path` special-case branch.
 
 `1cc7361`:
+
 - `data/headers_keys.json` — added `taxonomy`, `extracted_text`, and
   `title_template` to `multi_value_headers`, found by diffing the header
   lists against the `Archive`/`Collection` types in
@@ -30,6 +34,7 @@ d651bb0 Ignore DynamoDB-generated columns on metadata ingest
   in `session-summary.md`.
 
 `479e20e`:
+
 - `ingest_classes/metadata/generic_metadata.py` — new
   `unwrap_dynamodb_value` method: detects DynamoDB's raw typed-value export
   shape (`[{"S":"foo"}]`, or `[{"S":"foo"},{"S":"bar"}]` for List-type
@@ -40,20 +45,22 @@ d651bb0 Ignore DynamoDB-generated columns on metadata ingest
   before it reaches `set_attribute`.
 
 ## Final column classification (verified against the real Dynamo export)
+
 Checked every column in
 `/Users/whunter/dev/dlp/assets/iawa/meta/all_values_archive_metadata.csv`:
 
-| Column | Handling |
-|---|---|
-| `id`, `custom_key`, `__typename`, `createdAt`, `updatedAt`, `collection`, `parent_collection`, `heirarchy_path`, `manifest_url`, `thumbnail_path`, `item_category` | ignored (new `ignored_headers` list) |
-| `archived`, `visibility`, `parent_collection_identifier` | already special-cased in `set_attribute`, untouched by this change |
-| everything else (`title`, `description`, `creator`, `rights`, `rights_statement`, dates, etc.) | passes through normally via `single_value_headers`/`multi_value_headers` |
+| Column                                                                                                                                                             | Handling                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `id`, `custom_key`, `__typename`, `createdAt`, `updatedAt`, `collection`, `parent_collection`, `heirarchy_path`, `manifest_url`, `thumbnail_path`, `item_category` | ignored (new `ignored_headers` list)                                     |
+| `archived`, `visibility`, `parent_collection_identifier`                                                                                                           | already special-cased in `set_attribute`, untouched by this change       |
+| everything else (`title`, `description`, `creator`, `rights`, `rights_statement`, dates, etc.)                                                                     | passes through normally via `single_value_headers`/`multi_value_headers` |
 
 No column in the real export falls through to the new "unrecognized column"
 warning path — that path exists as a general safety net for genuinely
 unknown/misspelled columns going forward, not for anything in this export.
 
 ## Next steps
+
 - **Not pushed.** Push `dev` when ready — no instruction was given to push
   automatically outside of this write-a-summary flow, and the earlier
   commit-only requests didn't ask for a push either.

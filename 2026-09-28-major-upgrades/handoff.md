@@ -23,7 +23,7 @@ Repo: `~/dev/dlp/access/dlp-access`, branch `whunter/upgrade/amplify-gen-2`. The
 - **Node version:** `.nvmrc` is 24. The user's shell runs Node 20.17, which gives EBADENGINE warnings: jest-dom 7 and sanitize-html 2.17.7 want ≥ 22, and sass, htmlparser2 and others want ≥ 20.19. Everything still works on 20.17 today.
 - **`examples/amplify.yml` installs Node 17.6.0** for both build and test. If the real Amplify console build spec matches, deploys will fail. This needs checking and updating to 24.
 - **Prettier 3** reports 22 files under `src` as unformatted. They were not reformatted; lint-staged only formats staged files.
-- **`npm outdated` quirk:** it showed `jest-dom`, `sass` and `sanitize-html` as newer than `latest`. Per-version `npm view` confirmed the installed versions *are* `latest` and not deprecated; the outdated output used stale cached tags.
+- **`npm outdated` quirk:** it showed `jest-dom`, `sass` and `sanitize-html` as newer than `latest`. Per-version `npm view` confirmed the installed versions _are_ `latest` and not deprecated; the outdated output used stale cached tags.
 
 ## Held back, with reasons
 

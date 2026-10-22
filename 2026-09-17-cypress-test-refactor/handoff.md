@@ -1,6 +1,7 @@
 # Handoff — cypress-test-refactor (2026-09-17)
 
 ## Context
+
 `access/dlp-access` repo, branch `whunter-refactor-update-tests`. Full
 narrative in `session-summary.md`.
 
@@ -28,10 +29,12 @@ repo's "only commit when asked" convention:
  M cypress/e2e/integration/show_all_less_buttons.cy.js
  M cypress/e2e/integration/view_options.cy.js
 ```
+
 Untouched (already matched current site behavior):
 `category_select_checkbox.cy.js`, `richSchemaTools.cy.js`.
 
 ## Next steps
+
 1. If asked to finish this up: `git add` the files above and commit
    (normal message, no attribution per this user's CLAUDE.md), then ask
    before pushing.
@@ -46,6 +49,7 @@ Untouched (already matched current site behavior):
    `useGetCollection`.
 
 ## How to run / verify
+
 1. Start the app against the real AppSync backend (no local backend
    needed — `src/aws-exports.js` already points at production, and AWS
    creds are available in this environment):
@@ -66,6 +70,7 @@ Untouched (already matched current site behavior):
    No CI wiring exists for Cypress in this repo — it's run manually.
 
 ## Key facts for a fresh agent
+
 - **Cypress couldn't even boot before this session** — Cypress 13's bundled
   `ts-node` chokes on the root `tsconfig.json`'s
   `"ignoreDeprecations": "6.0"`. Fixed via `cypress/tsconfig.json`
@@ -78,6 +83,7 @@ Untouched (already matched current site behavior):
   item/collection IDs now hardcoded into the specs.
 
 ## Suggested skills
+
 - No special skill needed to just commit/push the pending changes — normal
   git workflow.
 - **`code-review`** (medium/high effort) if the next session wants a

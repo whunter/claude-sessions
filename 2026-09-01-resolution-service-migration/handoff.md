@@ -31,7 +31,7 @@ migration plan (written to `plan.md` in this directory). Key facts established:
    The owning AWS account for that CloudFront distribution is still
    unidentified (checked `196766403141` and `226388486048`/`eb-cli`; absent
    from both). Rather than needing access to that unknown account, the plan
-   instead repoints the CNAME to one of *our* CloudFront distributions
+   instead repoints the CNAME to one of _our_ CloudFront distributions
    (the dormant stack's own `E36QWU4GGFDPFY` / `d23illvkjqb563.cloudfront.net`),
    bypassing the mystery front door entirely.
 4. Confirmed the two stacks' own CloudFront distributions
@@ -87,7 +87,7 @@ across all distributions, so resolving to a particular distribution's own
 `*.cloudfront.net` domain doesn't mean that distribution handles the request).
 The dormant stack's own distribution (`E36QWU4GGFDPFY`) has `Aliases: null` —
 no alias registered — so SNI=`idn.lib.vt.edu` still gets claimed by whichever
-distribution *does* have that alias registered, which is still the
+distribution _does_ have that alias registered, which is still the
 unidentified front-door distribution (`d3btzx4iv66c21.cloudfront.net`), still
 pointed at the legacy API Gateway. **There is no DNS-only trick that avoids
 needing write access to that unidentified account** — the actual cutover
@@ -131,7 +131,7 @@ Re-ran the same 100-record test (`custom_key` field from
   legacy — the base-path-mapping change is what actually did it.
 - Dormant Lambda's env vars re-checked and still correct:
   `TargetTable=mint`, `Image404=https://i.stack.imgur.com/6M513.png`.
-- Note: the dormant stack's *own* CloudFront (`E36QWU4GGFDPFY`) still has
+- Note: the dormant stack's _own_ CloudFront (`E36QWU4GGFDPFY`) still has
   `Aliases: []` — it was never used for the cutover and can be considered
   dead weight now, since routing goes through API Gateway's custom-domain
   CloudFront, not either stack's own SAR-provisioned one.
@@ -143,12 +143,12 @@ API Gateway Custom Domain Name's base-path mapping.
 
 ### Current infra split (post-cutover)
 
-| | Now serving `idn.lib.vt.edu` traffic | No longer relevant to the live path |
-|---|---|---|
-| CloudFront | `d3btzx4iv66c21.cloudfront.net` (API Gateway-managed, custom domain `idn.lib.vt.edu`) | `E2CZDTXELAYPFI` (legacy stack's own CF) / `E36QWU4GGFDPFY` (dormant stack's own CF, unused, no alias) |
-| API Gateway | `zjxfzd5xih` (base-path mapping target) | `ltghm34375` (legacy, still deployed, receiving 0 traffic) |
-| Lambda | `dlp-services-ResolutionServ-NameResolutionFunction-1ttBuMQ1rMrp` | `VTDLP-Resolution-Service-NameResolutionFunction-1IZLCRWFTW5NY` (idle) |
-| DynamoDB | `mint` | — (shared table, unchanged) |
+|             | Now serving `idn.lib.vt.edu` traffic                                                  | No longer relevant to the live path                                                                    |
+| ----------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| CloudFront  | `d3btzx4iv66c21.cloudfront.net` (API Gateway-managed, custom domain `idn.lib.vt.edu`) | `E2CZDTXELAYPFI` (legacy stack's own CF) / `E36QWU4GGFDPFY` (dormant stack's own CF, unused, no alias) |
+| API Gateway | `zjxfzd5xih` (base-path mapping target)                                               | `ltghm34375` (legacy, still deployed, receiving 0 traffic)                                             |
+| Lambda      | `dlp-services-ResolutionServ-NameResolutionFunction-1ttBuMQ1rMrp`                     | `VTDLP-Resolution-Service-NameResolutionFunction-1IZLCRWFTW5NY` (idle)                                 |
+| DynamoDB    | `mint`                                                                                | — (shared table, unchanged)                                                                            |
 
 ## Third verification pass — `hits`-attribute bug fixed
 
@@ -201,7 +201,7 @@ production traffic already being on the new stack.
 3. **Decommission candidates, now that cutover is confirmed:** the legacy
    stack (`VTDLP-Resolution-Service` — API `ltghm34375`, Lambda, CloudFront
    `E2CZDTXELAYPFI`) is receiving 0 traffic and can be torn down after a
-   burn-in period; the dormant stack's *own* CloudFront
+   burn-in period; the dormant stack's _own_ CloudFront
    (`E36QWU4GGFDPFY`/`d23illvkjqb563.cloudfront.net`) was never used for the
    cutover (routing goes through API Gateway's custom-domain CloudFront
    instead) and could also be removed or repurposed.

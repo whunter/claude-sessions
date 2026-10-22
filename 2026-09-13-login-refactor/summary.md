@@ -40,10 +40,10 @@ new file `/Users/whunter/dev/scripts/logout.sh`, and `~/.aliases`:
   always falls through to its own end and control returns to the running
   shell regardless of how it's invoked.
 
-- `SignatureDoesNotMatch` (a corrupted-*secret* signature, distinct from
+- `SignatureDoesNotMatch` (a corrupted-_secret_ signature, distinct from
   `InvalidClientTokenId` which would mean a bad access key) traced to
   `read_masked`'s per-character `read -s -n 1` loop: `-s` makes bash
-  save/restore terminal echo attributes on *every character read*, ~40+
+  save/restore terminal echo attributes on _every character read_, ~40+
   times for one secret. That's a documented fragile pattern — a fast or
   chunked paste (how people typically enter a secret key) can race those
   repeated toggles and silently drop bytes, yielding a wrong-but-nonempty
@@ -59,7 +59,7 @@ new file `/Users/whunter/dev/scripts/logout.sh`, and `~/.aliases`:
   credentials to `~/.aws/credentials` via `aws configure set`; this was
   explicitly reverted per follow-up request in favor of plain exports
   only, using the existing `login` shell alias (`~/.aliases`:
-  `alias login=". .../login.sh"`), which *sources* the script into the
+  `alias login=". .../login.sh"`), which _sources_ the script into the
   current interactive shell so `export` correctly persists across
   `login` and a later `login -check` in that same shell — no file needed.
 
@@ -99,7 +99,7 @@ new file `/Users/whunter/dev/scripts/logout.sh`, and `~/.aliases`:
   differs), so the fix is based on a confirmed-real, well-documented failure
   mode rather than a locally reproduced failing test.
 - Separately confirmed bracketed-paste terminal escape codes get captured
-  literally by *both* the old and new masking code if a terminal has that
+  literally by _both_ the old and new masking code if a terminal has that
   mode on — pre-existing in the original plain `read -s` too, not part of
   this regression, not fixed; noted in the handoff as a known follow-up.
 - After reverting to plain exports, built a pty harness driving a real

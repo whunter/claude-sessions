@@ -5,7 +5,7 @@
 ## Task
 
 Refactor `aws/cloudFormation/vtdlp-noid-services/20260902_mint_service.template` so its
-Lambda functions are granted DynamoDB permissions on a specified, *existing* table —
+Lambda functions are granted DynamoDB permissions on a specified, _existing_ table —
 mirroring how `20260902_resolution_service.template` grants permissions — instead of
 creating its own table and using SAM's `DynamoDBCrudPolicy` shorthand tied to that
 created table.
@@ -39,7 +39,7 @@ In `20260902_mint_service.template`:
    policy document form: `Version` + `Statement`), granting the same 9 actions
    `DynamoDBCrudPolicy` originally granted:
    `GetItem, DeleteItem, PutItem, Scan, Query, UpdateItem, BatchWriteItem, BatchGetItem,
-   DescribeTable`
+DescribeTable`
    on both the table ARN and its `/index/*` ARN, built via `Fn::Sub` referencing
    `TargetTableName` — same construction style used in resolution_service's IAM role
    policy.

@@ -41,6 +41,7 @@ The team lead asked for the CDK app to support multiple environments (`dev`, `pr
 ## Open items
 
 These are the next steps in `handoff.md`:
+
 1. Deploy `dev` (user-run).
 2. Verify indexing and the demo page.
 3. Repoint the `dev-env-sc` EB template at the new instance profile.

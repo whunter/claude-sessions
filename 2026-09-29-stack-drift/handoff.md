@@ -5,12 +5,15 @@ Repo: `~/dev/dlp/access/dlp-access`, branch `whunter/upgrade/amplify-gen-2`. No 
 ## Next step
 
 Run lock interactively and confirm the prompt:
+
 ```
 amplify gen2-migration lock
 ```
+
 As of the end of this session it passes validation. **Do not `amplify push` or redeploy from the Amplify console before running it.** Something after the last push rewrote the S3 API template without the override (see below), and that could bring the drift back.
 
 What lock will do:
+
 - Set `DeletionPolicy` / `UpdateReplacePolicy: Retain` on the DynamoDB tables (Archive, Collection, Collectionmap, History, MetadataField, PageContent, Partner, Site) and on the Cognito resources, and turn on DynamoDB deletion protection.
 - Block `amplify push` on `vtdlp-dev/gentwo`, and block migrating any other env until this one is finished or rolled back.
 - It can be undone with `amplify gen2-migration lock --rollback`.

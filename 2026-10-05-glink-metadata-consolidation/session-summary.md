@@ -10,17 +10,17 @@ Consolidate the duplicate and out-of-sync scanning guides and archive metadata s
 
 ## Sources examined
 
-| Source | Finding |
-| --- | --- |
-| `docs/glink_scanning_guide_.csv` | Most complete guide: 143 rows with titles, medium, dimensions, capture person/date/device/target. Used as the base. |
-| `docs/glink_scanning_guide.csv`, `glink_scanning_guide.csv` | Older subsets (102 rows, no capture data). No conflicting descriptive values against the full guide. |
-| `gretchen_link_digitization_guide.xlsx` (root and `docs/`, identical) | Early 8-row stub. Ignored. |
-| `gretchen_link_scanning_guidelines.docx` (root and `docs/`, identical) | Technical capture guidelines, still titled for the Beverly Willis collection. No item metadata. |
-| `glink_template_archive_metadata.csv` | 139 rows of placeholders ("title for glink…"). Identical to the copy in S3. |
-| `glink_collection_metadata.csv` | Collection-level record. Identical to the copy in S3. |
-| `done.txt` | `ls -l` listings of source TIFFs for the paintings. Used for source filenames. |
-| DynamoDB `Archive-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev` | 141 records with identifiers starting `glink`: 139 real, 2 tests. Titles and descriptions are placeholders. Supplied ARKs, record IDs, manifest and thumbnail URLs. |
-| S3 `ingest-dev.img.cloud.lib.vt.edu/federated/glink/` | 139 real record folders plus 3 test folders. Manifests supplied actual page counts and pixel dimensions. |
+| Source                                                                 | Finding                                                                                                                                                             |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/glink_scanning_guide_.csv`                                       | Most complete guide: 143 rows with titles, medium, dimensions, capture person/date/device/target. Used as the base.                                                 |
+| `docs/glink_scanning_guide.csv`, `glink_scanning_guide.csv`            | Older subsets (102 rows, no capture data). No conflicting descriptive values against the full guide.                                                                |
+| `gretchen_link_digitization_guide.xlsx` (root and `docs/`, identical)  | Early 8-row stub. Ignored.                                                                                                                                          |
+| `gretchen_link_scanning_guidelines.docx` (root and `docs/`, identical) | Technical capture guidelines, still titled for the Beverly Willis collection. No item metadata.                                                                     |
+| `glink_template_archive_metadata.csv`                                  | 139 rows of placeholders ("title for glink…"). Identical to the copy in S3.                                                                                         |
+| `glink_collection_metadata.csv`                                        | Collection-level record. Identical to the copy in S3.                                                                                                               |
+| `done.txt`                                                             | `ls -l` listings of source TIFFs for the paintings. Used for source filenames.                                                                                      |
+| DynamoDB `Archive-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev`                 | 141 records with identifiers starting `glink`: 139 real, 2 tests. Titles and descriptions are placeholders. Supplied ARKs, record IDs, manifest and thumbnail URLs. |
+| S3 `ingest-dev.img.cloud.lib.vt.edu/federated/glink/`                  | 139 real record folders plus 3 test folders. Manifests supplied actual page counts and pixel dimensions.                                                            |
 
 ## Verification
 

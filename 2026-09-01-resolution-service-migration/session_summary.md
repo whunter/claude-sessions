@@ -15,11 +15,11 @@ behavior or causing downtime.
    `Image404=https://vtdlp-dev-cf.s3.amazonaws.com/404.png`.
 2. **Checked whether `dlp_minter` exists** — it doesn't
    (`dynamodb describe-table` → `ResourceNotFoundException`). `aws dynamodb
-   list-tables` confirmed only `mint` and `vtdlp_resser_idn` exist as
+list-tables` confirmed only `mint` and `vtdlp_resser_idn` exist as
    name-resolution-shaped tables; `dlp_minter` is absent entirely.
 3. **Tried to inspect the front-door → API Gateway link directly**
    (`apigateway:GET`, `route53:ListHostedZones`) — both denied. `acm
-   list-certificates` did succeed and showed a cert for `idn.lib.vt.edu`
+list-certificates` did succeed and showed a cert for `idn.lib.vt.edu`
    already provisioned in this account.
 4. **Diffed both stacks' CloudFormation resources** (`list-stack-resources`) —
    neither declares a custom domain name / base path mapping resource, so the
@@ -30,7 +30,7 @@ behavior or causing downtime.
    code change.
 6. **Traced `NSTableName` to `MintServiceApp`** — the same parameter also feeds
    the sibling `MintServiceApp` nested stack, whose `ResolutionTable` resource
-   *is* `dlp_minter` (declared in CFN, but the actual DynamoDB table is gone —
+   _is_ `dlp_minter` (declared in CFN, but the actual DynamoDB table is gone —
    drift, not a naming coincidence). `dlp-services` has been `CREATE_COMPLETE`
    since 2021-11-18 with zero updates since; `MintServiceApp`'s function also
    shows 0 invocations/30d, i.e. the entire nested app is dead, not just the
@@ -44,7 +44,7 @@ behavior or causing downtime.
    `idn.prod.cloud.lib.vt.edu` is just a CNAME to
    `d3btzx4iv66c21.cloudfront.net` (an unidentified-account CloudFront), rather
    than needing access to that account, the CNAME itself can be repointed to
-   one of *our* CloudFront distributions instead. Verified both stacks' own
+   one of _our_ CloudFront distributions instead. Verified both stacks' own
    CloudFront distributions (`E2CZDTXELAYPFI` live, `E36QWU4GGFDPFY` dormant)
    have identical default cache behaviors (TTL 0, no query string/cookie
    forwarding, `Origin` header only forwarded) and that neither currently has
@@ -54,6 +54,7 @@ behavior or causing downtime.
 ## Conclusion / plan produced
 
 Wrote a full migration plan (`plan.md` in this session directory) recommending:
+
 1. Repoint the dormant stack's `NSTableName` parameter from `dlp_minter` to
    `mint` (skip resurrecting `dlp_minter` or repurposing `vtdlp_resser_idn` —
    both would need a backfill from `mint` with no benefit over using it

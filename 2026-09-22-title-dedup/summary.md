@@ -193,7 +193,7 @@ left to roll back from.
    captured group. Supports `-dry-run` like the other commands.
 3. **Verified before writing**: ran `-dry-run` first (2,239 matches, titles
    all looked correct, e.g. `"Limenitidinae: Specimen-13" ->
-   "Limenitidinae"`), confirmed with the user via `AskUserQuestion` before
+"Limenitidinae"`), confirmed with the user via `AskUserQuestion` before
    the live DynamoDB write (this mutates production-like data with no
    change-log safety net), then ran for real.
 4. **Result**: 2,239/2,239 `vtec` records reverted. A follow-up `-dry-run`
@@ -256,7 +256,7 @@ and no unit tests were added for the new helpers.
 ### Not yet done / caveats (continuation 3)
 
 - The `.md` output hasn't been checked on a real `report` run yet.
-- One open question: should a collection be listed only when two of *its
-  own* records share a title? Right now it's also listed when its record
+- One open question: should a collection be listed only when two of _its
+  own_ records share a title? Right now it's also listed when its record
   shares a title with a record in a different collection.
 - Nothing pushed to remote per standing instructions; push/PR on request.

@@ -4,6 +4,7 @@
 **Session:** aws-scripts-install
 **Repo:** `/Users/whunter/dev/scripts`, branch `login/out`
 **Files touched:**
+
 - `aws/login.sh` (moved from repo root)
 - `aws/logout.sh` (moved from repo root)
 - `aws/install.sh` (new)
@@ -42,6 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/whunter/shell-tools/login/out/aws/i
 ```
 
 Behavior:
+
 - `REPO_BRANCH` env var (default `login/out`) selects which branch's
   `aws/login.sh` / `aws/logout.sh` to fetch via
   `raw.githubusercontent.com/whunter/shell-tools/<branch>/aws/<file>`.
@@ -65,6 +67,7 @@ they know why/how that deletion happened, in case something else is
 editing this repo concurrently.
 
 **Not yet done / worth doing before wide use:**
+
 - Never actually executed end-to-end against the real
   `raw.githubusercontent.com` URL in this session (no network round-trip
   was performed) — worth a real `curl | bash` smoke test on a clean shell
@@ -97,7 +100,7 @@ correctness. Removed via `git rm .aliases` and committed.
   `install.sh`'s default `REPO_BRANCH`, or keep pinning to `login/out`
   intentionally.
 - Consider whether `install.sh` should also verify/append a `source
-  ~/.aliases` line into the user's shell rc file (`.zshrc`/`.bashrc`) —
+~/.aliases` line into the user's shell rc file (`.zshrc`/`.bashrc`) —
   currently it only reminds the user to source it manually, per the
   original request's scope.
 - Figure out how `aws/install.sh` got deleted from disk mid-session (see

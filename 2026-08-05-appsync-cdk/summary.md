@@ -15,14 +15,14 @@ The source schema uses **Amplify GraphQL Transformer** directives (`@model`, `@s
 
 ## Clarifying questions asked (and answers)
 
-| Question | Answer |
-|---|---|
-| How to handle Amplify-only directives? | **Hand-rolled schema + resolvers** (not the Amplify GraphQL API L3 construct) |
-| Auth scope? | **IAM only** — no Cognito groups/public auth preserved; authorization enforced app-side |
-| CDK language? | **TypeScript** (matches this repo's existing npm/Next.js stack, not Python) |
-| Reuse existing resources or build fresh? | **Reuse existing Amplify-provisioned DynamoDB tables** rather than creating new ones |
-| CRUD/subscriptions needed? | **Read-only** (get/list/indexed-lookups + relation fields only) |
-| Which environment's tables? | **`vtdlpdev` only for now**, parameterized for prod later |
+| Question                                 | Answer                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| How to handle Amplify-only directives?   | **Hand-rolled schema + resolvers** (not the Amplify GraphQL API L3 construct)           |
+| Auth scope?                              | **IAM only** — no Cognito groups/public auth preserved; authorization enforced app-side |
+| CDK language?                            | **TypeScript** (matches this repo's existing npm/Next.js stack, not Python)             |
+| Reuse existing resources or build fresh? | **Reuse existing Amplify-provisioned DynamoDB tables** rather than creating new ones    |
+| CRUD/subscriptions needed?               | **Read-only** (get/list/indexed-lookups + relation fields only)                         |
+| Which environment's tables?              | **`vtdlpdev` only for now**, parameterized for prod later                               |
 
 ## Investigation before writing code
 
@@ -49,6 +49,7 @@ infra/
 ```
 
 **Stack (`AppSyncStack`):**
+
 - New `GraphqlApi` (`dlp-access-next-vtdlp`), `AuthorizationType.IAM` only.
 - Imports the 8 existing `vtdlpdev` DynamoDB tables via `Table.fromTableName` (suffix parameterized via CDK context `tableSuffix`, defaulting to `bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev`).
 - 27 APPSYNC_JS unit resolvers, generated from 5 reusable templates in `resolvers.ts` rather than hand-writing near-duplicate files:
@@ -61,6 +62,7 @@ infra/
 - `CfnOutput`s for API ID, GraphQL URL, and API ARN.
 
 **Explicitly out of scope** (per the read-only decision):
+
 - No mutations or subscriptions.
 - No full-text search (`searchObjects`, `fulltextArchives`, `fulltextCollections` are OpenSearch-backed in the original and weren't ported).
 - No `filter` arguments on list queries — only `limit`/`nextToken` pagination.

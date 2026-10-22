@@ -1,11 +1,13 @@
 # Handoff — cypress-mock-fixtures (2026-09-17)
 
 ## Context
+
 `access/dlp-access` repo, branch `whunter-refactor-update-tests`. Full
 narrative in `session-summary.md`.
 
 This session builds directly on top of two earlier same-day sessions on
 this branch:
+
 - `../2026-09-17-cypress-test-refactor/` — rewrote specs to match current
   site behavior/data, but still hit the **live** AppSync API directly.
 - `../2026-09-17-cypress-node-upgrade/` — bumped Cypress 13.6.4 → 15.21.1.
@@ -19,6 +21,7 @@ mocking infrastructure plus edits to every integration spec, all
 unstaged, per this repo's "only commit when explicitly asked" convention.
 
 ## State (uncommitted)
+
 ```
  M .gitignore
  M cypress.config.ts
@@ -31,6 +34,7 @@ unstaged, per this repo's "only commit when explicitly asked" convention.
 ```
 
 ## Next steps
+
 1. If asked to finish this up: `git add` the files above (including the
    new `cypress/fixtures/graphql/` and `cypress/support/localSearchArchives.js`)
    and commit (normal message, no attribution per this user's CLAUDE.md),
@@ -56,32 +60,40 @@ unstaged, per this repo's "only commit when explicitly asked" convention.
 ## How to run
 
 ### Full suite (this is now the standard way to run tests — no live
+
 backend or AWS login required):
+
 ```
 npm run start-dlp &
 npx cypress run --spec "cypress/e2e/integration/**/*.cy.js" --headless --browser electron
 CYPRESS_API_TEST_ONLY=true npx cypress run --spec "cypress/e2e/api/**/*.cy.js" --headless --browser electron
 ```
+
 (`search_archives_graphql.cy.js`, the only spec under `api/`, is now a
 pure local unit test against a bundled dataset — it needs no server and
 no network at all, but is kept isolated behind `CYPRESS_API_TEST_ONLY` so
 it can run without `baseUrl` being reachable.)
 
 ### Refreshing the captured fixtures (only needed when live data drifts
+
 or a new query needs capturing — requires a real login + live dev server,
 same as the old workflow):
+
 ```
 npm run start-dlp &
 CYPRESS_capture=true npx cypress run --spec "cypress/e2e/integration/**/*.cy.js" --headless --browser electron
 ```
+
 This overwrites/extends `cypress/fixtures/graphql/captures/*.json` with
 fresh request/response pairs recorded from the live API. Commit the
 resulting fixture diffs like any other change.
 
 ## CI
+
 **No CI test job exists for Cypress in this repo yet** — the only GitHub
 Actions workflows (`pr.yml`, `merge.yml`) trigger Amplify Console preview
 deploys, not test runs. If/when a CI job is added:
+
 - No new packages need to be installed beyond what's already in
   `devDependencies` (`cypress`, `cypress-localstorage-commands`) and
   `dependencies` (`cypress-file-upload`) — this refactor added zero new
@@ -99,12 +111,13 @@ deploys, not test runs. If/when a CI job is added:
   CI at all now — that's the whole point of this refactor.
 
 ## Key facts for a fresh agent
+
 - `cy.intercept()` only catches **browser-driven** requests. The one spec
   that used `cy.request()` (Node-side, bypasses intercept) —
   `search_archives_graphql.cy.js` — was rewritten as a local unit test
   instead (see `cypress/support/localSearchArchives.js`), since
   `searchArchives` is `@searchable`/OpenSearch-backed and `amplify mock
-  api` doesn't support that locally either.
+api` doesn't support that locally either.
 - `cy.task()` cannot be called from inside a `cy.intercept()` req/res
   callback (throws a Cypress command-queue error). Captures are buffered
   in a plain JS array in the callback and flushed via `cy.task()` from a
@@ -119,6 +132,7 @@ deploys, not test runs. If/when a CI job is added:
   Flag this to the user if it ever needs to change.
 
 ## Suggested skills
+
 - No special skill needed to commit/push the pending changes — normal git
   workflow.
 - **`code-review`** (medium/high effort) is worth running on the diff

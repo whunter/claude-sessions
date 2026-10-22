@@ -15,17 +15,18 @@ four subcommands:
 - `rollback` — restores titles recorded in a `report` or `apply`
   change-log, scoped to one collection at a time, same as `apply`.
 - `revert-legacy` — restores titles for a collection that was disambiguated
-  by the *pre-`apply`* version of this tool, where no report or change-log
+  by the _pre-`apply`_ version of this tool, where no report or change-log
   exists to roll back from. Used this session to undo a real `vtec`
   collection run (see "What changed in this continuation session" below).
 
 Full design rationale for the original apply/rollback build lives in
 `spec.md` in this same directory (produced via `/mattpocock-skills:grill-me`
-+ `/mattpocock-skills:to-spec`). It has not been published to an issue
-tracker — no `mattpocock-skills` tracker/triage-label config exists for this
-project yet; run `/setup-matt-pocock-skills` if that's wanted later. The
-`README.md` in the tool's own directory is the up-to-date reference for
-usage; this file is a narrower "what changed / what's next" note.
+
+- `/mattpocock-skills:to-spec`). It has not been published to an issue
+  tracker — no `mattpocock-skills` tracker/triage-label config exists for this
+  project yet; run `/setup-matt-pocock-skills` if that's wanted later. The
+  `README.md` in the tool's own directory is the up-to-date reference for
+  usage; this file is a narrower "what changed / what's next" note.
 
 ## Commands
 
@@ -68,9 +69,9 @@ same name if the flags are omitted, on both `apply` and `rollback`.
 ```yaml
 region: us-east-1
 table_name: Archive-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev
-collection_table_name: Collection-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev  # required for `report`
+collection_table_name: Collection-bxbkjhe235e3jcwcjcji5txvlm-vtdlpdev # required for `report`
 output_dir: output
-output_file: duplicate_titles.json  # report writes <output_dir>/duplicate_titles_<timestamp>.json (+ .md)
+output_file: duplicate_titles.json # report writes <output_dir>/duplicate_titles_<timestamp>.json (+ .md)
 concurrency: 10
 # optional fallbacks for apply/rollback's -collection_identifier and apply's -suffix:
 # collection_identifier: FCHS_OBJ
@@ -81,16 +82,16 @@ concurrency: 10
 
 ```json
 {
-  "collection_identifier": "FCHS_OBJ",       // only set in a change-log
-  "timestamp": "20260922T153000Z",           // only set in a change-log
+  "collection_identifier": "FCHS_OBJ", // only set in a change-log
+  "timestamp": "20260922T153000Z", // only set in a change-log
   "duplicates": [
     {
       "title": "1957 Coeburn Quadrangle Virginia",
       "records": [
         {
-          "id": "2bcd8e4f-...",              // DynamoDB primary key
+          "id": "2bcd8e4f-...", // DynamoDB primary key
           "identifier": "nmcst005196",
-          "collection_id": "11783a71-...",   // parent collection's DynamoDB id
+          "collection_id": "11783a71-...", // parent collection's DynamoDB id
           "collection_identifier": "FCHS_OBJ", // parent collection's human-readable identifier
           "new_title": "1957 Coeburn Quadrangle Virginia - Map: nmcst005196" // only in a change-log
         }
@@ -139,7 +140,7 @@ match; `go build`/`go vet`/`go test ./...` all pass.
 ## What changed in this second continuation session
 
 The user had already run `apply` against the `vtec` collection with
-`-suffix Specimen` using an *older* build of this tool (predating this
+`-suffix Specimen` using an _older_ build of this tool (predating this
 repo's `apply`/`rollback` commands — see git log for the pre-rewrite
 commits, e.g. `4817ce1`), and no longer had the input report/change-log
 needed for `rollback`. That old algorithm wrote
@@ -156,7 +157,7 @@ follow-up `-dry-run` (zero remaining matches). Added
 `TestPlanRevertLegacy_StripsSuffixAndIndex` to `main_test.go` and a
 `revert-legacy` section to `README.md`.
 
-This is a one-way trip in the sense that there's no change-log of *this*
+This is a one-way trip in the sense that there's no change-log of _this_
 revert — if `vtec` needs to be re-disambiguated, use the current `apply`
 command, which will produce one.
 
@@ -169,7 +170,7 @@ command, which will produce one.
    Commit `a0ef2b9`.
 2. **`report` also writes a Markdown collection list.** Same path as the
    JSON but with a `.md` extension. It has a `# Collections with duplicate
-   titles` heading and one bullet per collection identifier, sorted. A
+titles` heading and one bullet per collection identifier, sorted. A
    collection is listed if any of its records is in any duplicate-title
    group, even a group that spans several collections. That is exactly the
    set of collections `apply -collection_identifier` would change. Records

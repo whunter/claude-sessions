@@ -21,18 +21,18 @@ For each of the 24 collection records in `/Users/whunter/dev/dlp/assets/iawa/met
 
 **10 of 24 collections copied and verified** (object count + total byte size match exactly between source and destination):
 
-| Collection | Objects | Size |
-|---|---|---|
-| Ms1988_017_Pfeiffer | 43,188 | 10,238,657,903 |
-| Ms1990_007_Leviseur | 572,017 | 51,922,411,792 |
-| Ms1990_025_Rudoff | 49,803 | 6,489,481,928 |
-| Ms1990_057_Chadeayne | 401,888 | 144,410,862,752 |
-| Ms1991_025_Bliznakov | 12,539 | 1,350,815,750 |
-| Ms1992_028_Rodeck | 516,627 | 129,384,087,937 |
-| Ms1994_016_Crawford | 121,263 | 20,384,477,226 |
-| Ms1995_007_Piomelli | 342,226 | 35,762,453,103 |
-| Ms1997_003_Gottlieb | 463,619 | 51,004,022,325 |
-| Ms1998_005_Zimbler (csv id: Ms1998_005) | 410,379 | 67,011,001,854 |
+| Collection                              | Objects | Size            |
+| --------------------------------------- | ------- | --------------- |
+| Ms1988_017_Pfeiffer                     | 43,188  | 10,238,657,903  |
+| Ms1990_007_Leviseur                     | 572,017 | 51,922,411,792  |
+| Ms1990_025_Rudoff                       | 49,803  | 6,489,481,928   |
+| Ms1990_057_Chadeayne                    | 401,888 | 144,410,862,752 |
+| Ms1991_025_Bliznakov                    | 12,539  | 1,350,815,750   |
+| Ms1992_028_Rodeck                       | 516,627 | 129,384,087,937 |
+| Ms1994_016_Crawford                     | 121,263 | 20,384,477,226  |
+| Ms1995_007_Piomelli                     | 342,226 | 35,762,453,103  |
+| Ms1997_003_Gottlieb                     | 463,619 | 51,004,022,325  |
+| Ms1998_005_Zimbler (csv id: Ms1998_005) | 410,379 | 67,011,001,854  |
 
 **14 of 24 not yet started** — see hand-off doc for the exact list and how to resume.
 

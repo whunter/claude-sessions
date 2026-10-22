@@ -6,10 +6,10 @@ Follows the 2026-10-02 session (`../2026-10-02-cognito-auth/`), which added the 
 
 ## What changed
 
-| Commit | Change |
-|---|---|
+| Commit    | Change                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------- |
 | `904ede9` | The Auth stack no longer provisions a user pool; `-c userPool` is required for an environment deploy |
-| `2d28cfb` | Stale comment in `lib/web-stack.ts` |
+| `2d28cfb` | Stale comment in `lib/web-stack.ts`                                                                  |
 
 ### Infra (`infra/`)
 

@@ -1,6 +1,7 @@
 # Session Summary — iawa-migration-plan (2026-09-13)
 
 ## Goal
+
 Plan and build tooling to migrate all 11 IAWA IIIF collections on S3
 (`s3://vtdlp-pprd.img.cloud.lib.vt.edu/iawa/`) so that every "item"
 directory lives directly under its collection root, removing the legacy
@@ -10,6 +11,7 @@ by collections that have been migrated.
 ## What was done
 
 ### 1. Investigated the S3 layout across all 11 collections
+
 - Confirmed 2 collections already migrated (`Ms1988_017_Pfeiffer`,
   `Ms1990_007_Leviseur`), 1 in-progress (`Ms1990_025_Rudoff`), and the rest
   still fully legacy.
@@ -43,17 +45,20 @@ by collections that have been migrated.
   they contain no `manifest.json`).
 
 ### 2. User decision
+
 Asked the user whether the migration should also rewrite the stale
 embedded URLs while moving files, vs. replicating the pre-existing
 (broken) pattern as-is. **User chose: rewrite URLs during migration.**
 
 ### 3. Built a Go CLI tool: `iawa-migrate`
+
 Location: `~/dev/dlp/ingest/vtdlp-aws-tools/go/migrate-tool/`
 (moved by the user after the tool was built; originally created at
 `~/dev/dlp/assets/iawa/meta/migrate-tool/`)
 (Go module `iawa-migrate`, uses AWS SDK for Go v2, Go 1.24.)
 
 Files:
+
 - `main.go` — CLI entry point and subcommands (`discover`, `migrate`, `verify`).
 - `s3client.go` — thin S3 wrapper (`S3` struct) implementing list/get/put/copy/delete, satisfying `s3Lister`/`s3RW` interfaces for testability.
 - `plan.go` — discovery/classification logic (`buildPlan`) and the `Plan`/`ItemMove`/`FileTask` types.
@@ -62,22 +67,23 @@ Files:
 Full details, including build/run instructions, are in `handoff.md`.
 
 ### 4. Ran discovery (read-only) against all 11 collections
+
 No writes were made to S3 — `discover` only lists and classifies. Full
 results:
 
-| Collection | Items to move | Notes |
-|---|---|---|
-| Ms1988_017_Pfeiffer | 0 | already migrated |
-| Ms1990_007_Leviseur | 0 | already migrated (has separate leftover-duplicate-folders issue from a prior session, not part of this tool's scope) |
-| Ms1990_025_Rudoff | 54 | in-progress; matches manual investigation exactly |
-| Ms1990_057_Chadeayne | 451 | largest by object count (~400K objects) |
-| Ms1991_025_Bliznakov | 1 | smallest — recommended as the live trial run |
-| Ms1992_028_Rodeck | 501 | largest by item count; includes the `RolledDrawings` naming exception |
-| Ms1994_016_Crawford | 128 | |
-| Ms1995_007_Piomelli | 55 | |
-| Ms1997_003_Gottlieb | 107 | deepest/most irregular nesting (`Box2/Folder1/item`, `MapCap13/Drawer3/Folder1/item`) |
-| Ms1998_005_Zimbler | 87 | |
-| Ms2005_002_Treder | 0 | no image content — out of scope |
+| Collection           | Items to move | Notes                                                                                                                |
+| -------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Ms1988_017_Pfeiffer  | 0             | already migrated                                                                                                     |
+| Ms1990_007_Leviseur  | 0             | already migrated (has separate leftover-duplicate-folders issue from a prior session, not part of this tool's scope) |
+| Ms1990_025_Rudoff    | 54            | in-progress; matches manual investigation exactly                                                                    |
+| Ms1990_057_Chadeayne | 451           | largest by object count (~400K objects)                                                                              |
+| Ms1991_025_Bliznakov | 1             | smallest — recommended as the live trial run                                                                         |
+| Ms1992_028_Rodeck    | 501           | largest by item count; includes the `RolledDrawings` naming exception                                                |
+| Ms1994_016_Crawford  | 128           |                                                                                                                      |
+| Ms1995_007_Piomelli  | 55            |                                                                                                                      |
+| Ms1997_003_Gottlieb  | 107           | deepest/most irregular nesting (`Box2/Folder1/item`, `MapCap13/Drawer3/Folder1/item`)                                |
+| Ms1998_005_Zimbler   | 87            |                                                                                                                      |
+| Ms2005_002_Treder    | 0             | no image content — out of scope                                                                                      |
 
 **Zero warnings** (no name collisions, no items missing a matching tile
 set) across all 11 collections — the discovery logic appears sound against
@@ -85,6 +91,7 @@ real production data. Total: **1,383 items** to relocate across 9
 collections.
 
 ### 5. User ran `migrate` live on `Ms1990_025_Rudoff`, found a bug
+
 The user ran `migrate -collection Ms1990_025_Rudoff` (no `-delete`) for
 real, which successfully copied all 54 items to the collection root with
 rewritten URLs. They then re-ran with `-delete` to clean up the old nested
@@ -102,12 +109,13 @@ be deleted in the first place. The user's framing: **a duplicate at root
 should be a requirement for deletion, not a reason to block it.**
 
 **Fix (in `plan.go`):**
+
 - Discovery is now two-pass: first catalog every item already sitting at
   the collection root, then classify nested items against that catalog.
 - A nested item whose name matches a root item is checked for a matching
   file/tile-suffix set. If it matches, it's marked `ItemMove.AlreadyAtRoot
-  = true` — a cleanup-only entry with no copy or rewrite needed, safe for
-  `-delete` to remove. If the file sets *don't* match, it still falls back
+= true` — a cleanup-only entry with no copy or rewrite needed, safe for
+  `-delete` to remove. If the file sets _don't_ match, it still falls back
   to a blocking warning (a genuine anomaly, not a completed migration).
 - Genuine nested-vs-nested collisions (two different sub-collections both
   targeting the same new root name, neither already migrated) still block
@@ -124,6 +132,7 @@ should be a requirement for deletion, not a reason to block it.**
 deletion.
 
 ## Status at end of session
+
 Tool built, the `-delete`-after-partial-migration bug found by the user
 was fixed and verified, and both docs updated to match.
 
@@ -136,6 +145,7 @@ is ready to run to finish that cleanup. No other collection's S3 objects
 were touched.
 
 ## Files
+
 - `handoff.md` — next steps, build/run instructions, and command reference
 - Tool code changes only touched `plan.go`, `migrate.go`, and `main.go` in
   the migrate-tool repo; no other project files were modified.

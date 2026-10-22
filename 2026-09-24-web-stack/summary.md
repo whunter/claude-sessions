@@ -56,6 +56,7 @@ Add a separate CDK stack that deploys the Next.js app to Elastic Beanstalk. Whoe
 ## Open items
 
 These are in `handoff.md`:
+
 - Check the demo page on the new environment.
 - Destroy the old `DlpAccessNextAppSyncStack`, and decide whether to retire the `appsync-stack` EB environment.
 - Decide on HTTPS or a custom domain.

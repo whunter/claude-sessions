@@ -74,7 +74,7 @@ instead of whatever `amplify push` happened to bake in):
   and `npm run build`. Note: this file is a reference only — it is
   **not** what the live Amplify Console app actually runs. The live
   spec (fetched via `aws amplify get-app --app-id d1n265krqy0ld3
-  --query app.buildSpec`) is separately configured in the console and
+--query app.buildSpec`) is separately configured in the console and
   was intentionally left untouched (see Outstanding Tasks).
 - `.gitignore` — added `cdk.out/`.
 
@@ -99,6 +99,7 @@ separate look if anyone wants to scope it down.
 ## Commits
 
 On `whunter-refactor-appsync-extend`, pushed to origin:
+
 ```
 41f1e6a Add automatic AppSync API key rotation infra and CI sync step
 ```

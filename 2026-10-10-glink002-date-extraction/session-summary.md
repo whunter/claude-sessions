@@ -31,12 +31,12 @@ locally cached images where possible.
 
 60 images inspected (glink002001–060): 20 with dates, 40 without.
 
-| Batch | Records | Dated | Dates appended |
-|---|---|---|---|
-| 01 | glink002001–015 | 6 | 003 (1982), 007 (1988), 008 (1977), 012 (1980-05), 013 (1983), 015 (1990) |
-| 02 | glink002016–030 | 6 | 023, 024, 025 (all 1990), 028 (1978), 029, 030 (both 1982-05) |
-| 03 | glink002031–045 | 3 | 031 (1980-02), 033 (1990), 040 (1979) |
-| 04 | glink002046–060 | 5 | 051 (1978), 052 (1977), 054 (1994), 055 (1978), 057 (1986) |
+| Batch | Records         | Dated | Dates appended                                                            |
+| ----- | --------------- | ----- | ------------------------------------------------------------------------- |
+| 01    | glink002001–015 | 6     | 003 (1982), 007 (1988), 008 (1977), 012 (1980-05), 013 (1983), 015 (1990) |
+| 02    | glink002016–030 | 6     | 023, 024, 025 (all 1990), 028 (1978), 029, 030 (both 1982-05)             |
+| 03    | glink002031–045 | 3     | 031 (1980-02), 033 (1990), 040 (1979)                                     |
+| 04    | glink002046–060 | 5     | 051 (1978), 052 (1977), 054 (1994), 055 (1978), 057 (1986)                |
 
 Medium-confidence readings, with the alternative recorded in the notes column:
 
@@ -64,11 +64,11 @@ per-batch result files keep a row for every image, including the undated ones.
 The 60 images used more than 90% of the user's session limit.
 
 | Batch | Tool calls | Duration |
-|---|---|---|
-| 01 | 59 | 3 min |
-| 02 | 51 | 3 min |
-| 03 | 425 | 22 min |
-| 04 | 92 | 5 min |
+| ----- | ---------- | -------- |
+| 01    | 59         | 3 min    |
+| 02    | 51         | 3 min    |
+| 03    | 425        | 22 min   |
+| 04    | 92         | 5 min    |
 
 Likely causes, as discussed with the user:
 

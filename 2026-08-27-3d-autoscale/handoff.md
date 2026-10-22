@@ -5,12 +5,14 @@
 ## Current state
 
 Four files modified, **not committed**:
+
 - `src/components/Babylon/BabylonController.jsx`
 - `src/components/Babylon/elements/Camera.tsx`
 - `src/components/Babylon/elements/Ground.tsx`
 - `src/components/Babylon/elements/Subject.tsx`
 
 Behavior now:
+
 - Models auto-frame to 60% of the camera's vertical FOV via camera distance (not mesh scaling). `Subject`'s old `scaleFactor` param is now an optional `cameraDistance` override.
 - Camera zoom is clamped: can't dolly inside the model (`modelBoundingRadius * 1.2`), can't pull back more than `1.5x` the framing distance.
 - Model always rests on the ground plane regardless of its own pivot; camera orbit target follows the model's true vertical center.

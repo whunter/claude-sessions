@@ -109,7 +109,7 @@ This is **the command that produces your infrastructure**. The CLI doesn't know 
 }
 ```
 
-This is **context**, a key/value bag your app can read. The entries here are *feature flags*. They opt into newer CDK behaviours, such as merging IAM statements (`minimizePolicies`). They're fixed per project, so upgrading CDK doesn't silently change your templates.
+This is **context**, a key/value bag your app can read. The entries here are _feature flags_. They opt into newer CDK behaviours, such as merging IAM statements (`minimizePolicies`). They're fixed per project, so upgrading CDK doesn't silently change your templates.
 
 Then the CLI merges your `-c key=value` flags into that same bag. For our command, the context the app will see is:
 
@@ -143,7 +143,10 @@ npx ts-node --prefer-ts-exts bin/appsync.ts: Subprocess exited with error 1
 
 ```ts
 const app = new cdk.App();
-buildApp(app, optionsFromContext((key) => app.node.tryGetContext(key)));
+buildApp(
+  app,
+  optionsFromContext((key) => app.node.tryGetContext(key)),
+);
 ```
 
 1. `new cdk.App()` creates the **root of the construct tree**. It reads `CDK_CONTEXT_JSON` and `CDK_OUTDIR`. It also registers a hook that runs `app.synth()` automatically when the Node process is about to exit. That's why no file ever calls `synth()`.
@@ -169,10 +172,10 @@ const config = resolveEnvironment(options.env, production);
 3. **Lookup**: `dev`, `pre-production` and `production` are entries in `ENVIRONMENTS`. Anything starting with `f-` gets the `FEATURE` settings, which are dev's settings with `removalPolicy: DESTROY`. Anything else throws "Unknown environment". These entries hold only the region and the removal policy.
 4. **Sizing** comes from the `production` flag, not the environment name:
 
-   | | `STANDARD_SIZING` (production false) | `PRODUCTION_SIZING` (production true) |
-   | --- | --- | --- |
-   | `search` | 1 × `t3.small.search`, 1 AZ, 10 GiB | 3 × `m7g.medium.search`, one per AZ across 3 AZs, 10 GiB |
-   | `web` | `t3.small` | `t3.medium` |
+   |          | `STANDARD_SIZING` (production false) | `PRODUCTION_SIZING` (production true)                    |
+   | -------- | ------------------------------------ | -------------------------------------------------------- |
+   | `search` | 1 × `t3.small.search`, 1 AZ, 10 GiB  | 3 × `m7g.medium.search`, one per AZ across 3 AZs, 10 GiB |
+   | `web`    | `t3.small`                           | `t3.medium`                                              |
 
    So `-c env=production` without `-c production=true` gets the small sizing, which is why Step 0 warns about it.
 
@@ -207,13 +210,19 @@ if (!BACKENDS.includes(backend)) throw ...                                     /
 ### 4c. Pick the stacks
 
 ```ts
-const provision = options.branch === undefined || backend === 'provision';
-const branch = options.branch === undefined ? undefined : branchSlug(options.branch);
+const provision = options.branch === undefined || backend === "provision";
+const branch =
+  options.branch === undefined ? undefined : branchSlug(options.branch);
 return {
-  config, account, production, branch, backend,
+  config,
+  account,
+  production,
+  branch,
+  backend,
   dataStackName: provision ? `${prefix}-Data` : undefined,
-  apiStackName:  provision ? `${prefix}-Api`  : undefined,
-  webStackName:  branch === undefined ? undefined : `DlpAccessNext-Web-${branch}`,
+  apiStackName: provision ? `${prefix}-Api` : undefined,
+  webStackName:
+    branch === undefined ? undefined : `DlpAccessNext-Web-${branch}`,
 };
 ```
 
@@ -221,11 +230,11 @@ That return value is the `AppPlan` that Step 0 printed.
 
 Every command also needs `-c account`; it's left out of the table because it doesn't affect which stacks exist.
 
-| Flags | `provision` | Stacks created |
-| --- | --- | --- |
-| `-c env=dev` | true (no branch) | Data, Api |
-| `-c env=dev -c branch=X` | false (attach) | Web |
-| `-c env=f-search -c branch=X -c backend=provision` | true | Data, Api, Web |
+| Flags                                              | `provision`      | Stacks created |
+| -------------------------------------------------- | ---------------- | -------------- |
+| `-c env=dev`                                       | true (no branch) | Data, Api      |
+| `-c env=dev -c branch=X`                           | false (attach)   | Web            |
+| `-c env=f-search -c branch=X -c backend=provision` | true             | Data, Api, Web |
 
 You can check this without deploying anything. `cdk ls` runs Steps 1 to 4 and prints the stack names:
 
@@ -251,8 +260,17 @@ Back in `buildApp`, each stack name in the plan becomes a stack:
 
 ```ts
 data = new DataStack(app, plan.dataStackName, { env, config });
-api  = new ApiStack(app, plan.apiStackName, { env, config, tables: data.tables, searchDomain: data.searchDomain });
-web  = new WebStack(app, plan.webStackName, { env, config, branch: plan.branch });
+api = new ApiStack(app, plan.apiStackName, {
+  env,
+  config,
+  tables: data.tables,
+  searchDomain: data.searchDomain,
+});
+web = new WebStack(app, plan.webStackName, {
+  env,
+  config,
+  branch: plan.branch,
+});
 if (api) web.addStackDependency(api);
 ```
 
@@ -315,7 +333,7 @@ Consequences:
 
 **OpenSearch domain** (line 59). Its sizing comes straight from `config.search`, so from `STANDARD_SIZING` or `PRODUCTION_SIZING` (Step 4a). With 3 nodes, the domain turns on zone awareness across 3 AZs.
 
-**Index template custom resource** (lines 85–104). CloudFormation can't configure anything *inside* an OpenSearch domain. To do that, the stack defines:
+**Index template custom resource** (lines 85–104). CloudFormation can't configure anything _inside_ an OpenSearch domain. To do that, the stack defines:
 
 - a Python Lambda (`infra/lambda/opensearch-index-template/index.py`);
 - a `cr.Provider`, CDK's framework that turns a Lambda into a CloudFormation custom-resource handler;
@@ -329,7 +347,7 @@ Synthesized: 16 resources (7 tables, 1 domain, 2 Lambdas, their roles and polici
 
 ### 5b. `ApiStack` (`infra/lib/api-stack.ts`): the stateless half
 
-**The API** (line 42) reads `infra/schema/schema.graphql` from disk *at synth time* and embeds it in the template, with IAM as the only auth mode.
+**The API** (line 42) reads `infra/schema/schema.graphql` from disk _at synth time_ and embeds it in the template, with IAM as the only auth mode.
 
 **Data sources** (line 58). `api.addDynamoDbDataSource('ArchiveDataSource', tables.Archive)` does three things:
 
@@ -337,7 +355,7 @@ Synthesized: 16 resources (7 tables, 1 domain, 2 Lambdas, their roles and polici
 2. It creates an IAM role that AppSync assumes.
 3. It grants that role read/write on the table.
 
-**Here is the cross-stack reference.** `tables.Archive` belongs to the *Data* stack, but it's being used in the *Api* stack. CDK notices that a token crossed a stack boundary, and does three things automatically:
+**Here is the cross-stack reference.** `tables.Archive` belongs to the _Data_ stack, but it's being used in the _Api_ stack. CDK notices that a token crossed a stack boundary, and does three things automatically:
 
 1. It adds an **Output with an Export** to the Data template:
    ```
@@ -367,7 +385,7 @@ The Data template ends up with 18 such exports: table names, table ARNs, stream 
 }
 ```
 
-So a resolver has two lives. It's *generated* on your laptop at synth time, and it *runs* inside AppSync at request time. A mistake in the generator can't show up until deploy time, when AppSync validates the code ("The code contains one or more errors").
+So a resolver has two lives. It's _generated_ on your laptop at synth time, and it _runs_ inside AppSync at request time. A mistake in the generator can't show up until deploy time, when AppSync validates the code ("The code contains one or more errors").
 
 **Streaming Lambda** (lines 170–207). This is a Python function packaged from `infra/lambda/opensearch-streaming/`, with `tests` and `__pycache__` excluded. `streamingFn.addEventSource(new DynamoEventSource(table, {...}))` becomes an `AWS::Lambda::EventSourceMapping`. That resource is AWS's poller that reads the table's stream and invokes the function. Its source ARN is again an import from Data:
 
@@ -385,9 +403,9 @@ The `grantPathReadWrite` and `grantIndexReadWrite` calls give the function's rol
 **The hand-off to Web stacks** (line 233):
 
 ```ts
-new ssm.StringParameter(this, 'GraphQLApiUrlParameter', {
-  parameterName: graphqlApiUrlParameterName(config.name),   // "/dlp-access-next/f-search/graphql-api-url"
-  stringValue: api.graphqlUrl,                              // token → Fn::GetAtt at deploy time
+new ssm.StringParameter(this, "GraphQLApiUrlParameter", {
+  parameterName: graphqlApiUrlParameterName(config.name), // "/dlp-access-next/f-search/graphql-api-url"
+  stringValue: api.graphqlUrl, // token → Fn::GetAtt at deploy time
 });
 ```
 
@@ -400,8 +418,10 @@ Synthesized: 68 resources, 26 of them resolvers.
 **The source bundle** (line 49):
 
 ```ts
-this.sourceBundle = new s3assets.Asset(this, 'SourceBundle', {
-  path: REPO_ROOT, ignoreMode: IgnoreMode.GIT, exclude: [...gitignore, ...BUNDLE_EXCLUDES],
+this.sourceBundle = new s3assets.Asset(this, "SourceBundle", {
+  path: REPO_ROOT,
+  ignoreMode: IgnoreMode.GIT,
+  exclude: [...gitignore, ...BUNDLE_EXCLUDES],
 });
 ```
 
@@ -420,14 +440,17 @@ package.json  postcss.config.mjs  public/  src/  tsconfig.json
 
 It has no `node_modules`, `.next`, `infra` or `.env*`. The key is the content hash (`3fa7f6a6….zip`), so **if the source didn't change, the key doesn't change and nothing is redeployed**.
 
-**Application and version** (lines 55–66). These are L1 resources. `CfnApplicationVersion` points at the asset's bucket and key. `addResourceDependency(application)` adds a CloudFormation `DependsOn`. It's needed because the version refers to the application by a *plain string name*, not a token, so CDK can't infer the ordering.
+**Application and version** (lines 55–66). These are L1 resources. `CfnApplicationVersion` points at the asset's bucket and key. `addResourceDependency(application)` adds a CloudFormation `DependsOn`. It's needed because the version refers to the application by a _plain string name_, not a token, so CDK can't infer the ordering.
 
-**Service role** (line 70). This is the role Beanstalk *itself* assumes to manage the environment (health checks, managed platform updates). It's a different role from the instance role, which is what the *app* runs as. The `service-role/` prefix on the enhanced-health policy ARN was this session's deploy bug.
+**Service role** (line 70). This is the role Beanstalk _itself_ assumes to manage the environment (health checks, managed platform updates). It's a different role from the instance role, which is what the _app_ runs as. The `service-role/` prefix on the enhanced-health policy ARN was this session's deploy bug.
 
 **The API URL, without a cross-stack reference** (line 80):
 
 ```ts
-const apiUrl = ssm.StringParameter.valueForStringParameter(this, graphqlApiUrlParameterName(config.name));
+const apiUrl = ssm.StringParameter.valueForStringParameter(
+  this,
+  graphqlApiUrlParameterName(config.name),
+);
 ```
 
 This doesn't read SSM at synth time; remember, synth has no AWS access. It emits a **CloudFormation parameter of the special type `AWS::SSM::Parameter::Value<String>`**:
@@ -441,7 +464,7 @@ This doesn't read SSM at synth time; remember, synth has no AWS access. It emits
 }
 ```
 
-It uses `{"Ref": "<that parameter>"}` wherever the URL is needed. CloudFormation resolves the value when it prepares each deploy of this stack (Step 8). The Web template therefore contains **no `ImportValue`**. It only knows *names*: this SSM path, and the instance profile name `dlp-access-next-f-search-eb` as a literal string. That is what lets a Web stack attach to an environment deployed last month, from a different CDK command.
+It uses `{"Ref": "<that parameter>"}` wherever the URL is needed. CloudFormation resolves the value when it prepares each deploy of this stack (Step 8). The Web template therefore contains **no `ImportValue`**. It only knows _names_: this SSM path, and the instance profile name `dlp-access-next-f-search-eb` as a literal string. That is what lets a Web stack attach to an environment deployed last month, from a different CDK command.
 
 **Option settings** (lines 82–123). The `settings` object is grouped by Beanstalk namespace for readability. `flatMap` then flattens it into the list shape CloudFormation wants. Synthesized:
 
@@ -518,7 +541,7 @@ If a stack fails, the CLI stops. Stacks after it aren't attempted.
 
 ## Step 8: what CloudFormation does in each stack
 
-CloudFormation builds its own dependency graph *inside* each template, from `Ref`, `Fn::GetAtt` and `DependsOn`. It creates independent resources in parallel.
+CloudFormation builds its own dependency graph _inside_ each template, from `Ref`, `Fn::GetAtt` and `DependsOn`. It creates independent resources in parallel.
 
 **`DlpAccessNext-f-search-Data`**
 
@@ -545,7 +568,7 @@ CloudFormation builds its own dependency graph *inside* each template, from `Ref
 
 - If only the Next.js source changed, the asset hash changes. The `Version` resource is replaced and the `Environment` is updated to the new version label. Beanstalk then redeploys onto the instance.
 - If nothing changed, the CLI reports "no changes" and CloudFormation isn't asked to do anything.
-- If the Api stack were rebuilt with a new URL, the Web stack would **not** notice by itself. The SSM value is read only when *the Web stack* deploys. Redeploy the Web stack to pick it up.
+- If the Api stack were rebuilt with a new URL, the Web stack would **not** notice by itself. The SSM value is read only when _the Web stack_ deploys. Redeploy the Web stack to pick it up.
 
 ## Step 9: inside Elastic Beanstalk and on the instance
 
@@ -600,14 +623,14 @@ Each command here also takes `-c account=$ACCOUNT`, omitted for brevity. The dep
 
 **`-c env=dev`** (no branch). Only Steps 5a and 5b run. You get two stacks, and Api depends on Data through the exports. This is how an environment is created or updated.
 
-**`-c env=dev -c branch=X`** (attach, the default). Only Step 5c runs, and the app contains only the Web stack. No dependency is added, so correctness relies entirely on *names*:
+**`-c env=dev -c branch=X`** (attach, the default). Only Step 5c runs, and the app contains only the Web stack. No dependency is added, so correctness relies entirely on _names_:
 
 - the SSM parameter `/dlp-access-next/dev/graphql-api-url`, checked when the Web stack is deployed;
 - the instance profile `dlp-access-next-dev-eb`, checked by Beanstalk when it launches the instance.
 
-**`--all` in attach mode.** `--all` means "every stack *in this synthesized app*". In attach mode that's just the Web stack, so the dev Data and Api stacks can't be touched.
+**`--all` in attach mode.** `--all` means "every stack _in this synthesized app_". In attach mode that's just the Web stack, so the dev Data and Api stacks can't be touched.
 
-**Repointing a branch.** Deploying the same branch with `-c env=pre-production` produces the *same stack name*, because the name depends only on the branch. The only template differences are:
+**Repointing a branch.** Deploying the same branch with `-c env=pre-production` produces the _same stack name_, because the name depends only on the branch. The only template differences are:
 
 - the SSM parameter's default path;
 - the instance profile string;
@@ -689,18 +712,18 @@ Experiments that teach well:
 
 ## Glossary
 
-| Term | Meaning here |
-| --- | --- |
-| **App** | Root construct; one per `cdk` command run (`bin/appsync.ts`). |
-| **Stack** | A construct that becomes one CloudFormation stack and template. |
-| **Construct / L1 / L2** | A node in the tree. L1 = a raw `Cfn*` resource; L2 = a higher-level wrapper with defaults and `grant*` helpers. |
-| **Plan** | `planApp`'s result: the validated options with defaults, and the stack names. Shown by `npm run deploy` before it asks. |
-| **Context** | The key/value bag from `cdk.json` plus `-c` flags, read with `tryGetContext`. |
-| **Synth** | Running your app to produce `cdk.out`. No AWS calls. |
-| **Token** | A placeholder for a value known only at deploy time; becomes `Ref`, `Fn::GetAtt` or `Fn::ImportValue`. |
-| **Asset** | A local file or directory CDK uploads to the bootstrap bucket, keyed by content hash. |
-| **Bootstrap** | The one-time `cdk bootstrap` stack per account and region: asset bucket plus deploy roles (`hnb659fds`). |
-| **Export / ImportValue** | CloudFormation's cross-stack wiring, generated automatically when a token crosses stacks; blocks deletion while in use. |
-| **SSM-typed parameter** | `AWS::SSM::Parameter::Value<String>`; CloudFormation reads the named parameter at each deploy. Used for Web → Api. |
-| **Service role vs instance role** | The service role is what Beanstalk acts as; the instance role (`dlp-access-next-<env>-eb`) is what the Next.js app acts as. |
-| **Custom resource** | A Lambda that CloudFormation calls on create, update and delete, for things CloudFormation can't configure natively (the index template). |
+| Term                              | Meaning here                                                                                                                              |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **App**                           | Root construct; one per `cdk` command run (`bin/appsync.ts`).                                                                             |
+| **Stack**                         | A construct that becomes one CloudFormation stack and template.                                                                           |
+| **Construct / L1 / L2**           | A node in the tree. L1 = a raw `Cfn*` resource; L2 = a higher-level wrapper with defaults and `grant*` helpers.                           |
+| **Plan**                          | `planApp`'s result: the validated options with defaults, and the stack names. Shown by `npm run deploy` before it asks.                   |
+| **Context**                       | The key/value bag from `cdk.json` plus `-c` flags, read with `tryGetContext`.                                                             |
+| **Synth**                         | Running your app to produce `cdk.out`. No AWS calls.                                                                                      |
+| **Token**                         | A placeholder for a value known only at deploy time; becomes `Ref`, `Fn::GetAtt` or `Fn::ImportValue`.                                    |
+| **Asset**                         | A local file or directory CDK uploads to the bootstrap bucket, keyed by content hash.                                                     |
+| **Bootstrap**                     | The one-time `cdk bootstrap` stack per account and region: asset bucket plus deploy roles (`hnb659fds`).                                  |
+| **Export / ImportValue**          | CloudFormation's cross-stack wiring, generated automatically when a token crosses stacks; blocks deletion while in use.                   |
+| **SSM-typed parameter**           | `AWS::SSM::Parameter::Value<String>`; CloudFormation reads the named parameter at each deploy. Used for Web → Api.                        |
+| **Service role vs instance role** | The service role is what Beanstalk acts as; the instance role (`dlp-access-next-<env>-eb`) is what the Next.js app acts as.               |
+| **Custom resource**               | A Lambda that CloudFormation calls on create, update and delete, for things CloudFormation can't configure natively (the index template). |

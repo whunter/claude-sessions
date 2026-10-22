@@ -8,12 +8,12 @@ Record-level data from the scan is deliberately not in this folder. The list of 
 
 `infra/lib/search-mappings.ts` now generates the `archive` and `collection` index mappings from `infra/schema/schema.graphql` at synth time, ported from the Amplify app's `amplify/data/opensearch-mappings.ts` (dlp-access). The hand-written `infra/schema/opensearch/*.json` files are deleted. `graphql` is a new dependency in `infra/`.
 
-| Commit | Change |
-|---|---|
-| `87a564f` | Generate the mappings from the schema |
+| Commit    | Change                                                  |
+| --------- | ------------------------------------------------------- |
+| `87a564f` | Generate the mappings from the schema                   |
 | `ab88596` | Drop `yyyy/M`, `yyyy-M`, `yyyyMM` from the date formats |
-| `28f9e69` | Add `M/d/yyyy` |
-| `9ea64c7` | Drop `epoch_millis` |
+| `28f9e69` | Add `M/d/yyyy`                                          |
+| `9ea64c7` | Drop `epoch_millis`                                     |
 
 Every date field (`date`, `start_date`, `end_date`, `embargo_start_date`, `embargo_end_date`, plus any `AWSDateTime`/`AWSDate` field) is mapped with `ignore_malformed: true` and this format:
 
@@ -53,20 +53,20 @@ The pprd Archive table, 10,487 records, scanned 2026-10-01/02.
 
 `date` shapes (`d` = digit, counts are values):
 
-| Shape | Count | Parsed by the current formats |
-|---|---|---|
-| `dddd-dd-dd` | 3,505 | yes |
-| `d/dd/dddd`, `dd/dd/dddd`, `d/d/dddd`, `dd/d/dddd` | 1,025 | yes, by `M/d/yyyy` (unverified live) |
-| `dddd` | 386 | yes |
-| `dddd-dd` | 176 | yes |
-| `d.ddddddddd` | 162 | no |
-| `dddd-dd-dd/dddd-dd-dd` | 108 | no (range) |
-| `dddd/dddd` | 42 | no (year range) |
-| `~dddd` | 28 | no |
-| `dddd-dd/dddd-dd` | 9 | no (range) |
-| `dddX` | 5 | no |
-| `dddd.dd.dd`, `c. dddd` | 2 each | no |
-| 13 one-off shapes: mixed-precision ranges, `dddd?`, month-name dates, free text | 13 | no |
+| Shape                                                                           | Count  | Parsed by the current formats        |
+| ------------------------------------------------------------------------------- | ------ | ------------------------------------ |
+| `dddd-dd-dd`                                                                    | 3,505  | yes                                  |
+| `d/dd/dddd`, `dd/dd/dddd`, `d/d/dddd`, `dd/d/dddd`                              | 1,025  | yes, by `M/d/yyyy` (unverified live) |
+| `dddd`                                                                          | 386    | yes                                  |
+| `dddd-dd`                                                                       | 176    | yes                                  |
+| `d.ddddddddd`                                                                   | 162    | no                                   |
+| `dddd-dd-dd/dddd-dd-dd`                                                         | 108    | no (range)                           |
+| `dddd/dddd`                                                                     | 42     | no (year range)                      |
+| `~dddd`                                                                         | 28     | no                                   |
+| `dddd-dd/dddd-dd`                                                               | 9      | no (range)                           |
+| `dddX`                                                                          | 5      | no                                   |
+| `dddd.dd.dd`, `c. dddd`                                                         | 2 each | no                                   |
+| 13 one-off shapes: mixed-precision ranges, `dddd?`, month-name dates, free text | 13     | no                                   |
 
 Month-first is safe for the slash dates: 726 have a second part above 12, none have a first part above 12.
 

@@ -31,6 +31,7 @@ This meant **every** item's Language field pointed to the same Wikipedia "Englis
 ## What was changed
 
 `src/components/CollapsibleCards.js`:
+
 1. Added `"language"` to the `facetSearchItems` array.
 2. Removed the hardcoded `key === "language"` branch entirely.
 

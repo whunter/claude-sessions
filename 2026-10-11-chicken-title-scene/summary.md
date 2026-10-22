@@ -14,6 +14,7 @@ The chicken runs left/right, slides to a stop, and pecks on space.
 ## What was done
 
 ### Corn pile (`fdfed64`, `2fd8700`)
+
 1. Added `Assets/Scripts/CornPile.cs`: holds the 5 states of `corn_pile_sheet_0`
    (full pile → stray kernels), `Advance()` steps one state and stops at the last.
 2. SceneBuilder places the pile at x = 6 on the grass past the road, at the chicken's
@@ -26,10 +27,12 @@ The chicken runs left/right, slides to a stop, and pecks on space.
    Pecks are queued as `Queue<bool>`, each remembering whether it was aimed at the corn.
 
 ### Win trigger (`b6813ad`)
+
 5. The win fired at x = 3 and disabled the controller before the chicken could reach the
    corn. Added `GameManager.winTriggerEnabled` (default false) to turn it off for now.
 
 ### Corn shadow (`535856a`)
+
 6. Stripped the soft baked drop shadow from all three corn sheets with a PIL script:
    dark translucent pixels (max channel < 60) cleared, kernel edges blended over the
    shadow un-blended.
@@ -39,6 +42,7 @@ The chicken runs left/right, slides to a stop, and pecks on space.
 8. Pile half-width corrected to 187.5px (0.79 world units); the old 206px included the shadow.
 
 ### Build tooling (`003aa19`, `e09330d`)
+
 9. Added `build.sh`: runs `SceneBuilder.BuildScene` then `PlayerBuilder.BuildWindows`,
    prints log errors on failure, and refuses to start while the Editor has the project
    open (`Temp/UnityLockfile`).
@@ -47,18 +51,22 @@ The chicken runs left/right, slides to a stop, and pecks on space.
     now produce a byte-identical `MainScene.unity`.
 
 ### Controls (`882895b`)
+
 11. From a standstill, a left/right press turns the chicken immediately and only starts
     running after `turnHoldTime` (0.12s), so a tap turns in place.
 
 ### Cleanup (`c5a6f00`)
+
 12. Removed unused sprites: `chicken_pecking.png`, `chicken_run_1_classic_4frame.gif`,
     `chicken_run_2_smooth_12frame_sheet.png`, `corn.jpg`. Corn sheet variants 1 and 2 kept.
 
 ### Explanations given
+
 - CLI commands for the scene rebuild and the player build (WSL and PowerShell).
 - `0f` is a float literal, not an enum; table of C# numeric suffixes.
 
 ## Open items
+
 - `c5a6f00` (sprite cleanup) is not pushed yet.
 - The win trigger is off; it needs a new condition (e.g. right level edge) before it
   can come back without blocking the corn.

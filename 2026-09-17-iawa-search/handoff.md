@@ -11,7 +11,7 @@
 ## Not yet done
 
 - No verification pass beyond spot-checking one deleted `id` per table with `get-item`. Have not re-run the full scan to confirm all 2,702 target ids are gone (should be, since batch-write-item reported 0 unprocessed items on both runs, but wasn't independently re-verified at scale).
-- Did not investigate *why* these duplicates exist (e.g. a bad past migration/sync job) — only found and removed them. If this is an ongoing sync issue, the root cause producing new "federated" duplicates of "iawa" records may still be active.
+- Did not investigate _why_ these duplicates exist (e.g. a bad past migration/sync job) — only found and removed them. If this is an ongoing sync issue, the root cause producing new "federated" duplicates of "iawa" records may still be active.
 - Did not clean up `~/Desktop/iawa-search/*.csv` output files or the `backups/` directory — left in place in case they're needed for reference or further review.
 
 ## Next steps

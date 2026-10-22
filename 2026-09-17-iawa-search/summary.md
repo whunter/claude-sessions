@@ -51,7 +51,7 @@ The two Collection tables were **not** touched (0 matches, and also not requeste
 
 ## Credential quirk discovered mid-session
 
-Default AWS env credentials (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` in the shell env) resolved to account `226388486048` at the very start of the session, but later in the same session resolved to `196766403141` instead — with no explicit profile switch on my part. The only saved CLI profile, `eb-cli`, correctly targets `226388486048`, but only when passed as an explicit `--profile eb-cli` flag — setting `AWS_PROFILE=eb-cli` as an env var did *not* override the (higher-precedence) env-var credentials and still resolved to `196766403141`. Used `--profile eb-cli` for all `226388486048` operations from that point on.
+Default AWS env credentials (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` in the shell env) resolved to account `226388486048` at the very start of the session, but later in the same session resolved to `196766403141` instead — with no explicit profile switch on my part. The only saved CLI profile, `eb-cli`, correctly targets `226388486048`, but only when passed as an explicit `--profile eb-cli` flag — setting `AWS_PROFILE=eb-cli` as an env var did _not_ override the (higher-precedence) env-var credentials and still resolved to `196766403141`. Used `--profile eb-cli` for all `226388486048` operations from that point on.
 
 ## State at end of session
 

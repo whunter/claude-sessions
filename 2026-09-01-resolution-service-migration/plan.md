@@ -39,7 +39,7 @@ documented before the steps.
    and that CloudFront distribution's owning AWS account is still unidentified
    (checked `196766403141` and the `eb-cli` account `226388486048`; not in
    either). Per your observation: rather than needing access to that unknown
-   account, we can instead repoint the CNAME itself to one of *our* CloudFront
+   account, we can instead repoint the CNAME itself to one of _our_ CloudFront
    distributions — bypassing the mystery front door entirely. This is a real
    simplification, with one caveat: whatever the mystery CloudFront currently
    does beyond plain pass-through (WAF, logging, and — notably — it's the layer
@@ -95,10 +95,10 @@ just reverting the CNAME (5-minute TTL).
 1. **Repoint the dormant stack at the live data**, not a resurrected `dlp_minter`:
    - Update the `dlp-services` stack's `NSTableName` parameter from `dlp_minter`
      to `mint` (`aws cloudformation update-stack --stack-name dlp-services
-     --use-previous-template --parameters ParameterKey=NSTableName,ParameterValue=mint
-     ParameterKey=Image404,UsePreviousValue=true ParameterKey=Region,UsePreviousValue=true
-     ParameterKey=NOIDTemplate,UsePreviousValue=true ParameterKey=NOIDScheme,UsePreviousValue=true
-     ParameterKey=NOIDNAA,UsePreviousValue=true`).
+--use-previous-template --parameters ParameterKey=NSTableName,ParameterValue=mint
+ParameterKey=Image404,UsePreviousValue=true ParameterKey=Region,UsePreviousValue=true
+ParameterKey=NOIDTemplate,UsePreviousValue=true ParameterKey=NOIDScheme,UsePreviousValue=true
+ParameterKey=NOIDNAA,UsePreviousValue=true`).
    - This also repoints `MintServiceApp` (the write-side minter) at `mint`. Confirm
      with whoever owns this stack that `MintServiceApp` being dormant (0
      invocations/30d) means this is safe — if it's truly unused, no behavior
@@ -107,7 +107,7 @@ just reverting the CNAME (5-minute TTL).
      (`https://i.stack.imgur.com/6M513.png` vs. dormant's
      `https://vtdlp-dev-cf.s3.amazonaws.com/404.png`) for full parity, unless you
      want to standardize on the vtdlp-dev-cf one going forward (then update the
-     *live* stack instead — pick one canonical 404 image).
+     _live_ stack instead — pick one canonical 404 image).
    - Update the dormant Lambda's IAM role (`NameResolutionFunctionRolePolicy0`
      on `dlp-services-ResolutionSe-NameResolutionFunctionRo-1S32Q9EUBUQUA`) to
      grant read access to the `mint` table's ARN
@@ -118,9 +118,11 @@ just reverting the CNAME (5-minute TTL).
 
 2. **Verify parity by hitting the dormant API Gateway directly** (same technique
    as the inventory session):
+
    ```
    curl -s -D - -o /dev/null "https://zjxfzd5xih.execute-api.us-east-1.amazonaws.com/Prod/ark:/53696/635c402a"
    ```
+
    Confirm it now 301s to `https://digital.lib.vt.edu/archive/635c402a`, matching
    the live API. Spot-check several more ark IDs sampled from `mint` (including
    any edge cases: missing records, records with unusual `long_url` values) to
