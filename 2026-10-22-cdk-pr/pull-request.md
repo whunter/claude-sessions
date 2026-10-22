@@ -31,7 +31,6 @@ This replaces depending on the Amplify app's resources: the data layer, search a
 * `src/lib/auth.ts`, `/auth/login`, `/auth/logout`, `/authorize`: Cognito OIDC sign-in (ID token in an httpOnly cookie).
 * `/examples/appsync-queries`: admin-only demo page that runs every query in the schema, plus a search panel.
 * New deps: `@aws-sdk/credential-provider-node`, `aws4fetch`, `jose`, `openid-client`.
-* Removed `output: "standalone"` from `next.config.ts` (Beanstalk builds the app in place).
 
 **Tests:** Jest assertions on every environment's synthesized templates, resolvers and deploy script; pytest for the streaming and index-template Lambdas.
 
@@ -114,7 +113,8 @@ Things to know:
 * Local dev: `APPSYNC_API_URL=<GraphQLApiUrl output> npm run dev`, with the Cognito variables in `.env.local` (see `README.md`).
 
 **Impact on existing functionality:**
-* ⚠️ Removing `output: "standalone"` breaks the `Dockerfile` (it copies `.next/standalone`), which the existing PR-preview workflow (`.github/workflows/pr-preview-deploy.yaml`) builds. Those preview environments also now need `APPSYNC_API_URL` and the `dlp-access-next-<env>-eb` instance profile. We should either retire the PR-preview workflow in favor of Web stacks or fix it in a follow-up.
+* The existing PR-preview workflow (`.github/workflows/pr-preview-deploy.yaml`) still builds, but its environments now need `APPSYNC_API_URL` and the `dlp-access-next-<env>-eb` instance profile to reach the API. We should either retire it in favor of Web stacks or update it in a follow-up.
+* Web stacks run `next start` (Beanstalk's `npm start`), which logs a harmless warning about `output: "standalone"`; standalone output is kept for the `Dockerfile`.
 * The Amplify app and its data are untouched; nothing here reads or writes them.
 
 **Branch for testing:** `whunter/feature/add/deployment`.
