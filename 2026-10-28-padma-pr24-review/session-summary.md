@@ -25,3 +25,9 @@ Run `/code-review` on PR #24. Nothing was to be written to GitHub. Results were 
 8. A missing `FEEDBACK_EMAIL_TO` env var shows up as a client "Missing required fields" error.
 9. Collection page: two independent fetches run in sequence instead of with `Promise.all`.
 10. `accessibility/page.tsx`: 9 `react/no-unescaped-entities` errors, so lint fails.
+
+## Where everything is
+All output from this session is in this directory (`~/dev/dlp/claude-sessions/2026-10-28-padma-pr24-review/`):
+- `review-findings.md`: the full review (moved from `dlp-access-next/claude_sessions/`, which no longer exists)
+- `session-summary.md`: this file
+- `handoff.md`: next steps
