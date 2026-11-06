@@ -25,6 +25,7 @@
 
 ## Notes
 
+- After pulling a lockfile change, run `rm -rf node_modules && npm ci`, not `npm install`. If `node_modules` is left over from the old layout, `npm install` rewrites the lockfile around it (data-construct ends up hoisted) and `npm ci` fails again on missing `@aws-cdk/toolkit-lib`, `@smithy/*` and other entries. This happened once after the fix; restoring the committed lockfile and reinstalling cleanly resolved it.
 - Always regenerate the lockfile with a full `npm install` on npm 11, not with `--package-lock-only` and not with npm 8 or 10. Lock-only mode leaves out bundle entries, and older npm versions disagree on the optional-peer `type-fest`.
 - Don't try to override packages inside the Amplify bundles. It has no effect (a489cd7) or sends npm into an endless loop (overriding `@opentelemetry/core`).
 - When testing npm behaviour, set `npm_config_userconfig` to an empty file. Otherwise `~/.npmrc`'s `allow-scripts` hides the real error.
