@@ -360,3 +360,11 @@ Changed glink001010 medium from pencil/pen to multiple, per the user.
   - Ties are broken by order of first appearance.
 - The per-image `*_tags.csv` files are unchanged.
 - No single-image record had more than 13 tags, so none of them changed.
+
+## 32. Tag counts exclude covers and versos
+
+The top-15 tag lists for multi-image records were recalculated without cover and verso images.
+
+- An image was left out if one of its tags contained "cover" (front, back or inside) or "verso". That came to 20 images: 19 sketchbook covers plus the 002121 verso.
+- 6 master rows changed: 001004, 001006, 001007, 001008, 001009 and 002121.
+- 002121 now has 10 tags, which is every tag on the front image.
