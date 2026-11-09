@@ -296,3 +296,7 @@ Appended the date to the duplicate "Nag's Head" titles: glink002008 → "Nag's H
 ## 23. Update: medium value normalized
 
 Changed medium "colored marker?" → "marker" (1 item). Medium is populated for 95/143 items (all paintings).
+
+## 24. Update: uningested items removed
+
+Removed glink002140–002143 from the master: Dogwood Tree; House w/ gate (Birthday card); Dog and Cat in Window (Birthday card); Birdhouse and Flowers. They were captured 2026-01-30 per the scanning guide but have no Dynamo record, S3 assets or images. The master now has 139 items. Their scanning-guide rows still exist in `merged/glink_scanning_guide*.csv` if they are needed later.
