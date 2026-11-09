@@ -232,4 +232,4 @@ Added four columns to the master after `visual_description`: `date`, `date_as_wr
 - **glink001008:** the only reading is low confidence ('88, could be 68/86/66), so it is kept as `1988`/low with the note.
 - **glink001006:** 1985/2000 (medium). The 2000 comes from a single medium-confidence page.
 
-`20261009_glink_extracted_dates.csv` stays in `docs/` because its page-level dates for the sketchbooks are not represented in the master. It can move to `merged/` once page-level data has a home, or now if item-level is sufficient.
+Per the user, page-level dates for sketchbook images go in separate files. Wrote `docs/glink001001_dates.csv` … `glink001010_dates.csv`, which together hold 252 rows with the same columns and CRLF line endings as the source. Combined with the 45 single-image rows in the master, that covers all 297 source rows. Sketchbook `date_notes` in the master now point to `<id>_dates.csv`. `20261009_glink_extracted_dates.csv` moved to `merged/`.
