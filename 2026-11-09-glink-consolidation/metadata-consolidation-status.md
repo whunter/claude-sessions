@@ -300,3 +300,21 @@ Changed medium "colored marker?" → "marker" (1 item). Medium is populated for 
 ## 24. Update: uningested items removed
 
 Removed glink002140–002143 from the master: Dogwood Tree; House w/ gate (Birthday card); Dog and Cat in Window (Birthday card); Birdhouse and Flowers. They were captured 2026-01-30 per the scanning guide but have no Dynamo record, S3 assets or images. The master now has 139 items. Their scanning-guide rows still exist in `merged/glink_scanning_guide*.csv` if they are needed later.
+
+## 25. Update: medium filled for all items
+
+- A sub-agent proposed medium values for the 44 remaining blank items. It calibrated on the existing values, viewed the `media/scaled` images, and for sketchbooks also used the page text.
+- The proposals, with confidence and evidence for each item, are in `medium_proposals.csv` in this folder. All 44 were merged; medium is now filled for 139/139 items.
+- **Values merged:**
+  - oil/acrylic 23
+  - watercolor 6
+  - pen/colored pencil 3
+  - pen 2
+  - pencil/pen 2
+  - photograph 2
+  - pencil, multiple, watercolor/pencil, pastel, pastel/watercolor and ink, 1 each
+- **New terms:** `photograph` (002124, 002127) and `ink` (002128 silhouettes, judged brush-painted rather than cut; medium confidence).
+- **Low confidence:**
+  - 001010, pencil/pen: "multiple" is an alternative because a few pages are chalk, colored pencil or oil pastel.
+  - 002116, oil/acrylic: could be pastel on velour paper.
+- **Medium confidence:** 001005, 001006, 001009, 002123, 002128, 002129.
