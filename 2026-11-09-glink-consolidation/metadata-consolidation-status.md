@@ -483,3 +483,21 @@ Master was backed up first to `merged/20261109_glink_consolidation_archive_metad
   - p42 is no longer excluded, because 1999 follows on from the book's 1987–1998 pages. `date` changed from 1987/1998 to 1987/1999, and the description now says "from February 1987 to 1999".
   - `date_notes` still excludes p41 (June 77, out of sequence).
 - 3 lines changed, one in each file.
+
+## 39. Object and medium corrections from the user (§33 discrepancies)
+
+Master was backed up first to `merged/20261109_glink_consolidation_archive_metadata_backup_pre_object_fixes.csv`. 8 lines changed.
+
+- **002013:** medium changed from marker to watercolor; the user said the earlier "marker" correction was a mistake. date_notes already said watercolour.
+- **002078:** the objects are a bucket, apples, driftwood and a bottle. `date_notes` changed from "a pot, two tomatoes" to "a bucket, two apples".
+- **002077:**
+  - The fence is post and wire.
+  - `date_notes` had "split-rail fence" and now has "wooden gate and post and wire fence".
+  - visual_description and description now say "post and wire fence".
+  - The sagging gate at left is visible in the image, so it stays.
+- **002025:** the object is a squash. The description says "yellow crookneck squash" in place of "apparently a banana", and `date_notes` has squash in place of banana.
+- **002101:** the animal is a cat. `date_notes` changed from "dog" to "cat", and the description now says "small black cat".
+- **002095:** the garment is a jacket. Changed "vest" to "jacket" in the description, alt_text and visual_description.
+- **002118:** the object is a smoking pipe. The description no longer says "pipe or quill", the alt_text no longer says "clay pipe", and `date_notes` no longer says "quill". visual_description now says "smoking pipe" too.
+- **002031:** the den is brick. Changed "stone" or "masonry" to "brick" for the fireplace and hearth in the description, alt_text and visual_description.
+- **002010:** the legs are striped. visual_description already said "red-and-white striped arms and legs", so nothing changed.
