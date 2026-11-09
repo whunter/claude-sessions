@@ -455,3 +455,21 @@ Master had 22 lines changed: 20 in the first pass and 2 in the notes pass.
   - The inscription quotes in visual_description and date_notes are unchanged.
 - **002061:** title → "Harbor at Woods Hole, Mass".
 - 2 lines changed.
+
+## 37. Dates and Canterbury confirmed
+
+Master was backed up first to `merged/20261109_glink_consolidation_archive_metadata_backup_pre_date_fixes.csv`. 3 master lines changed, plus 13 lines across the page files.
+
+- **002070:** the user confirmed '52 (1952). Removed the "possibly '82" note from visual_description.
+- **002064:** the user confirmed '45 (1945). `date_notes` no longer offers '95 as an alternative, and `date_confidence` changed from medium to high.
+- **001006 p7:** the user reads it as 2002.
+  - The `_dates` row changed from 2000 to 2002 and stays medium confidence.
+  - The page visual_description now reads "2002".
+  - Master `date` changed from 1985/2000 to 1985/2002, and the description now says "to about 2002".
+- **001003 pp43–44:** `date_as_written` stays '82, but `date_normalized` changed to 1983 to match the Canterbury pages. The notes call it the artist's slip.
+- **001003 p40:** the place name is "Canterbury", written over "Cambridge". This was updated in the `_dates` notes and in the page alt_text and visual_description, and p40 was tagged `canterbury||england`. Master's top-15 tags are unchanged: canterbury is on 6 pages, and the cutoff is 8.
+- **"Cantabury" → "Canterbury"** in every active file:
+  - `glink001003.csv` pp41–44
+  - `glink001003_dates.csv` pp41–44
+  
+  There is no real place called Cantabury; every caption is Canterbury, England. The old spelling remains only in `merged/` source files. Note that these quotes no longer show the artist's spelling.
