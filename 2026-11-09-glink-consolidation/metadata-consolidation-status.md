@@ -446,3 +446,12 @@ Master had 22 lines changed: 20 in the first pass and 2 in the notes pass.
 - **Not changed:** quoted transcriptions of the artist's spelling in `date_notes` and the page files:
   - 002040 'ALbufeara'
   - 001003 p22 'Torromilinos', already marked "artist's spelling"
+
+## 36. Hotel Balaia and Woods Hole
+
+- **002040:**
+  - Title → "Hotel Balaia. Albufeira Portugal". The description now says Hotel Balaia too.
+  - `consolidation_notes` records that "Hotel Abalia" is how the artist spelled it.
+  - The inscription quotes in visual_description and date_notes are unchanged.
+- **002061:** title → "Harbor at Woods Hole, Mass".
+- 2 lines changed.
