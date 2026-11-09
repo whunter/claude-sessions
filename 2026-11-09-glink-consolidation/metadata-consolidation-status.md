@@ -288,3 +288,7 @@ For the 10 sketchbooks (001001–001010), master `alt_text` and `visual_descript
 ## 21. Update: sketchbook review files moved
 
 Moved `glink001001_review.csv` … `glink001010_review.csv` to `merged/`. The page-level files `glink0010NN.csv` stay in `docs/` because the master references them.
+
+## 22. Update: Nag's Head titles disambiguated
+
+Appended the date to the duplicate "Nag's Head" titles: glink002008 → "Nag's Head, 1977" (date confidence medium; inscription 'Ju 77'), glink002054 → "Nag's Head, 1994" (high).
