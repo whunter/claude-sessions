@@ -420,3 +420,29 @@ The top-15 tag lists for multi-image records were recalculated without cover and
 ## 34. 002044 title
 
 - The user changed the title of glink002044 from "White building (Mary Baldwin maybe?)" to "White building, Mary Baldwin University". One line changed.
+
+## 35. Review fixes from §33
+
+Master had 22 lines changed: 20 in the first pass and 2 in the notes pass.
+
+- **002088:** removed the couple's names from `description` and from `date_notes` ("Hoy/Hunter").
+- **No-signature statements:** removed them from 12 descriptions (002010, 002026, 002035, 002036, 002044, 002048, 002053, 002056, 002079, 002080, 002105, 002110). Where a sentence also said "undated", that part stays.
+- **Titles:**
+  - 002050 Teapot and Veggies → Coffee Pot and Veggies
+  - 002129 Windmill (Holland?) → Windmill, Portugal October 1979
+  - 002040 Albufura → Albufeira
+  - 002081 Cemetary → Cemetery
+  - 002090 Band "Conservice" → Band Concert
+  - 002126 Fruit → Vegetables. The duplicate Fruit group drops to 3.
+- **002098:** the user confirmed the house number is 112.
+  - Title Brick house 117 → Brick house 112.
+  - `date_notes` '111' → '112'.
+  - visual_description "117" or "112" → "112".
+  - The description now names the number.
+- **002040 description:** it no longer quotes the misspelled inscription and names Albufeira instead.
+- **Misspellings left in visual_description at the user's request, and recorded in `consolidation_notes`:**
+  - 002040: "Albufeara"
+  - 002104: "Torromilinos"
+- **Not changed:** quoted transcriptions of the artist's spelling in `date_notes` and the page files:
+  - 002040 'ALbufeara'
+  - 001003 p22 'Torromilinos', already marked "artist's spelling"

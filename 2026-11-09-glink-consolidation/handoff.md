@@ -33,7 +33,7 @@
 3. **Duplicate titles** in 7 groups are still unresolved:
    - Portrait ×5
    - Flowers ×4
-   - Fruit ×4
+   - Fruit ×3
    - Chickens ×2
    - Barn ×2
    - Church ×2
