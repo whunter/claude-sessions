@@ -473,3 +473,13 @@ Master was backed up first to `merged/20261109_glink_consolidation_archive_metad
   - `glink001003_dates.csv` pp41–44
   
   There is no real place called Cantabury; every caption is Canterbury, England. The old spelling remains only in `merged/` source files. Note that these quotes no longer show the artist's spelling.
+
+## 38. 001007 p42 is June '99
+
+- The user read 001007 p42, a loose Nags Head insert, as "June '99".
+  - **`glink001007_dates.csv`:** `date_as_written` is now "June '99" and `date_normalized` is 1999-06. Confidence went from low to high, and the notes record the user's reading in place of the old '97/'77 alternatives.
+  - **`glink001007.csv` p42:** the alt text says June 1999, and the visual_description quotes "June '99" without the uncertainty note.
+- **Master:**
+  - p42 is no longer excluded, because 1999 follows on from the book's 1987–1998 pages. `date` changed from 1987/1998 to 1987/1999, and the description now says "from February 1987 to 1999".
+  - `date_notes` still excludes p41 (June 77, out of sequence).
+- 3 lines changed, one in each file.
