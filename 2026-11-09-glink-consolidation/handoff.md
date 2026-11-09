@@ -3,7 +3,7 @@
 ## Where things stand
 
 - **Master file:** `~/dev/dlp/assets/glink/docs/20261109_glink_consolidation_archive_metadata.csv`, with 139 items and 40 columns.
-- **Fully populated columns:** title, alt_text, visual_description, medium, tags.
+- **Fully populated columns:** title, description, alt_text, visual_description, medium, tags.
 - **Detailed log:** `metadata-consolidation-status.md` in this folder. §1–6 describe the state at the start of the session. §7–32 are the updates in order. The TL;DR at the top of that document is out of date, so use this hand-off and `session-summary.md` instead.
 
 ## Conventions to keep
@@ -28,7 +28,7 @@
 
 ## Open items
 
-1. **`description`** is empty for all 139 items. Nothing has been generated yet.
+1. **`description`** is filled for all 139 items (§33). Sub-agents wrote it and no person has reviewed it yet. §33 lists the discrepancies they found, which haven't been resolved.
 2. **`date`** is empty for 84 items. Nothing more is available from the dates the extraction file found.
 3. **Duplicate titles** in 7 groups are still unresolved:
    - Portrait ×5

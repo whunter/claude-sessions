@@ -368,3 +368,51 @@ The top-15 tag lists for multi-image records were recalculated without cover and
 - An image was left out if one of its tags contained "cover" (front, back or inside) or "verso". That came to 20 images: 19 sketchbook covers plus the 002121 verso.
 - 6 master rows changed: 001004, 001006, 001007, 001008, 001009 and 002121.
 - 002121 now has 10 tags, which is every tag on the front image.
+
+## 33. Descriptions generated
+
+- Every record in master now has a `description`: a short catalog-style summary, 139 in all. 139 lines changed, and the round-trip check passed before the edit.
+- The work ran as 25 sub-agent batches, each using no more than 10 images. Waves of 5 ran one after another.
+  - **Batches 1–13:** the 127 single-image records, up to 10 per batch.
+  - **Batches 14–25:** one batch for each multi-image record. Each agent saw up to 10 images: page 1 plus pages spaced evenly through the item. It also read all the page-level files (alt text and visual description, `_tags`, `_dates`).
+- The shared prompt is in `description_instructions.md` and the final text in `description_proposals.csv`.
+- **User input during the run:**
+  - 002044 shows Mary Baldwin University, Staunton VA. The description says so; the title still reads "(Mary Baldwin maybe?)".
+  - All signatures are forms of Gretchen Hitt Link, usually "G Link". The 002116 description was softened to "faintly signed".
+- **Edits after review:**
+  - Took out a sentence in 002050 that pointed out the teapot/coffee pot mismatch.
+  - Made Staunton and Mary Baldwin explicit in 002076, 002097 and 002108.
+- **Lengths:** single-image descriptions are 30–95 words. Four multi-image descriptions run 162–174 words, a little over the 160 target: 001001, 001002, 001009 and 002128.
+- **Discrepancies the sub-agents reported** (no metadata was changed):
+  - **Titles:**
+    - 002050 "Teapot" shows a coffee pot.
+    - 002129 "Windmill (Holland?)" is inscribed "Portugal Oct 79".
+    - 002040 "Albufura" should be Albufeira.
+    - 002081 "Cemetary" is misspelled.
+    - 002090 "Band 'Conservice'" probably means Concert.
+    - 002098: the house number is 117 in the title, 112 in the image and 111 in date_notes.
+    - 002122: "Eduardo Placido" isn't supported by anything in the image.
+    - 002126 "Fruit" shows vegetables.
+  - **Dates:**
+    - 002070 '52 could be '82.
+    - 002064 '45 could be '95.
+    - 001006 p7 may read 2002, not 2000.
+    - 001003 pp43–44 are dated '82 among 1983 Canterbury pages.
+    - 001003 p40 reads "Canterbury", not "possibly Cambridge".
+    - 001007 p42 is 1977 in the alt text but '97 in the dates file.
+  - **date_notes or visual_description that don't match the image:**
+    - 002013 date_notes says "watercolour", but the medium is marker (confirmed by the user).
+    - 002078 date_notes lists a pot, tomatoes and driftwood; the image shows a bucket and apples.
+    - 002077 date_notes says split-rail; the image shows a gate and wire fence.
+    - 002025: the crookneck squash is probably a banana.
+    - 002101: a dog in date_notes, a cat in visual_description.
+    - 002095: date_notes says a jacket; the image shows a vest.
+    - 002118: a pipe in alt text, a quill in date_notes.
+    - 002031: brick in date_notes, stone in visual_description.
+    - 002010: the legs aren't striped.
+    - 002035: the "doorway" looks like a post.
+  - **Medium or format:**
+    - 002061 is a pencil sketch but has format "painting".
+    - 001001 medium "pencil" leaves out its watercolor and ink pages.
+    - 001006 also uses colored pencil.
+  - **Privacy:** 002088's description names Leslie Hoy and William L. Hunter, taken from the invitation.
