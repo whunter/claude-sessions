@@ -501,3 +501,11 @@ Master was backed up first to `merged/20261109_glink_consolidation_archive_metad
 - **002118:** the object is a smoking pipe. The description no longer says "pipe or quill", the alt_text no longer says "clay pipe", and `date_notes` no longer says "quill". visual_description now says "smoking pipe" too.
 - **002031:** the den is brick. Changed "stone" or "masonry" to "brick" for the fireplace and hearth in the description, alt_text and visual_description.
 - **002010:** the legs are striped. visual_description already said "red-and-white striped arms and legs", so nothing changed.
+
+## 40. "watercolour" → "watercolor"
+
+- At the user's request, every "watercolour" in the active files now reads "watercolor". There were 14:
+  - 13 in master `date_notes`, covering 11 items: 002007, 002013, 002054, 002055, 002057, 002077, 002088, 002089, 002104, 002122 and 002125.
+  - 1 in the `glink001009_dates.csv` notes, on p6.
+- All 14 were the extraction notes' own wording; none was inside a quoted inscription.
+- 12 lines changed. The source files in `merged/` were not changed.
