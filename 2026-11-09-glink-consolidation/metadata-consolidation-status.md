@@ -202,3 +202,10 @@ I merged the following into `20261109_glink_consolidation_archive_metadata.csv` 
 `size_source` value "provided by project staff" was chosen by the assistant. The user may want a different wording.
 
 **Now every ingested item has a size.** The only items without one are the four uningested items glink002140–002143.
+
+## 12. Update: glink002121 item-level text (2026-11-09)
+
+- Copied `alt_text` and `visual_description` for page 1 (the front) from `glink002121.csv` into the master row for glink002121. Page 2, the taped backing board, was not used.
+- Dropped the leading "Front of the work. " from the visual description. That phrase only makes sense alongside the back page, and no other item-level description in the master has such a prefix.
+- Left the `description` column empty, as it is for every other item.
+- `glink002121.csv` and `glink002121_review.csv` stay in `docs/`, since the full page-level text isn't merged yet. Still without item-level text: glink002128 and the sketchbooks 001001–001010.
