@@ -209,3 +209,13 @@ I merged the following into `20261109_glink_consolidation_archive_metadata.csv` 
 - Dropped the leading "Front of the work. " from the visual description. That phrase only makes sense alongside the back page, and no other item-level description in the master has such a prefix.
 - Left the `description` column empty, as it is for every other item.
 - `glink002121.csv` and `glink002121_review.csv` stay in `docs/`, since the full page-level text isn't merged yet. Still without item-level text: glink002128 and the sketchbooks 001001–001010.
+
+## 13. Update: glink002121 fully merged (2026-11-09)
+
+- The user said the back image (page 2) can be ignored, so glink002121 counts as fully merged: size, alt text and visual description are all in the master.
+- Moved `glink002121.csv` and `glink002121_review.csv` to `docs/merged/`. The extracted-dates file has no rows for 002121.
+- No other files became fully merged in this step.
+- **Still in `docs/` to merge:**
+  - `20261009_glink_extracted_dates.csv`
+  - the `glink001001`–`001010` page CSVs, with their review files
+  - `glink002128.csv` and `glink002128_review.csv`
