@@ -5,7 +5,7 @@
 
 ## TL;DR
 
-- **Most comprehensive CSV:** `20261007_glink_archive_metadata.csv`. It has 143 items and 35 columns, was last modified on Oct 9 at 06:44, and is the only archive file with a `size_source` column.
+- **Most comprehensive CSV:** `20261109_glink_consolidation_archive_metadata.csv`. It has 143 items and 35 columns, was last modified on Oct 9 at 06:44, and is the only archive file with a `size_source` column.
 - **Already merged into it:** both earlier archive versions, the 41-row hand-measured sizes file, `missing.csv`, the scanning guide, the Dynamo/S3 inventory and `done.txt`. The archive-level alt text and visual description edits from the review file are also in it.
 - **Still to merge:**
   1. `20261009_glink_computed-sizes_multi_archive_metadata.csv`: sizes for sketchbooks 001001 and 001002.
@@ -25,7 +25,7 @@
 | Oct 5 | `20261005_archive_consolidation_review.csv` | 140 | QC pass on the alt text and visual descriptions (confidence %, issues, suggested correction). |
 | Oct 5–7 | `glink001001.csv` … `glink001010.csv`, `glink002121.csv`, `glink002128.csv` | 2–89 each, 409 pages in all | **Page-level** `alt_text` and `visual_description` for the 10 sketchbooks, the 2-page beach painting (002121) and the 7-image silhouette set (002128). |
 | Oct 5–6 | `glink0*_review.csv` | one per page CSV | QC pass on each page-level CSV. |
-| Oct 7 | `20261007_glink_archive_metadata.csv` | 143 × 35 | **Current master.** Adds the `size_source` column and fills in more sizes (see §3). |
+| Oct 7 | `20261109_glink_consolidation_archive_metadata.csv` | 143 × 35 | **Current master.** Adds the `size_source` column and fills in more sizes (see §3). |
 | Oct 7 | `20261007_glink_archive_metadata_review.csv` | 140 | Byte-for-byte identical to the Oct 5 review file. It is a renamed copy, not a new review. |
 | Oct 8 | `20261008_glink_no_size_archive_metadata.csv` | 143 × 34 | The master without the size columns' contents: `width_in` and `height_in` are blank except for hand-measured values, and there is no `size_source`. It looks like the input for the size computation. Otherwise identical to the Oct 5 file. |
 | Oct 8–9 | `20261008_glink_computed-sizes_archive_metadata.csv` | 41 | Sizes for 41 paintings, with raw computed values, confidence and notes. |
@@ -41,7 +41,7 @@ Other reference files:
 
 ## 2. Most comprehensive CSV
 
-**`20261007_glink_archive_metadata.csv`**
+**`20261109_glink_consolidation_archive_metadata.csv`**
 
 - All 143 items: 139 in Dynamo and S3, plus 4 not yet ingested (002140–002143).
 - Format counts: 130 paintings, 10 sketchbooks, 2 photos, 1 silhouette set.
@@ -127,3 +127,17 @@ They are the only 12 ingested items with empty `alt_text` and `visual_descriptio
 4. Decide how to handle item-level vs page-level text for the 12 multi-page items, then merge the page CSVs.
 5. Add a date column (or columns), review the low and medium confidence dates, then merge the extracted dates.
 6. Write the merged result as a new dated master, for example `202611xx_glink_archive_metadata.csv`, and keep the Oct 7 file as a snapshot.
+
+## 7. Update: files reorganized (2026-11-09)
+
+- The user renamed the master `20261007_glink_archive_metadata.csv` to **`20261109_glink_consolidation_archive_metadata.csv`**. The references above now use the new name.
+- These files are already merged into the master, or were intermediate inputs to it, so they were moved to `docs/merged/`:
+  - `20261005_archive_consolidation.csv`, `20261005_archive_consolidation_review.csv`
+  - `20261007_glink_archive_metadata_review.csv` (a duplicate of the Oct 5 review)
+  - `20261008_glink_no_size_archive_metadata.csv`, `20261008_glink_computed-sizes_archive_metadata.csv` (the glink002001 height conflict is still open)
+  - `missing.csv`, `glink_scanning_guide.csv`, `glink_scanning_guide_.csv`, `done.txt`
+- These files stay in `docs/` because they still need to be merged:
+  - `20261009_glink_computed-sizes_multi_archive_metadata.csv`
+  - `20261009_glink_extracted_dates.csv`
+  - `glink001001`–`001010`, `glink002121` and `glink002128` page CSVs, with their `_review.csv` files
+- Left in place because they are reference documents, not metadata CSVs: `DIL_file_naming_convention.docx`, `gretchen_link_digitization_guide.xlsx`, `gretchen_link_scanning_guidelines.docx`.
