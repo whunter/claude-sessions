@@ -148,3 +148,17 @@ They are the only 12 ingested items with empty `alt_text` and `visual_descriptio
 - The master was already correct.
 - Fixed `merged/20261008_glink_computed-sizes_archive_metadata.csv`: `height_in` changed from 7.5 to 7.75, and `size_notes` from "10 x 7.5 in" to "10 x 7.75 in". The file's Windows-style (CRLF) line endings were kept.
 - The conflict in §5 item 1 is now **resolved**.
+
+## 9. Update: multi computed-sizes merged (2026-11-09)
+
+- Merged `20261009_glink_computed-sizes_multi_archive_metadata.csv` into `20261109_glink_consolidation_archive_metadata.csv`. This filled `width_in`, `height_in` and `size_source` for:
+  - glink001001: 7 × 9 in, "computed from image at 418 ppi (scale from spiral wire pitch)"
+  - glink001002: 5.5 × 8.5 in, "computed from image at 423 ppi (scale from spiral wire pitch)"
+- The pixel dimensions on page 1 matched the master. The target cells were empty beforehand.
+- Only those 2 rows changed. The rest of the file was checked to be byte-for-byte identical, including its Windows-style (CRLF) line endings.
+- The detailed `size_notes`, raw values and confidence were **not** carried over. The master has no columns for them, and the earlier 41-row size merge didn't carry them over either. They remain in the source file.
+- Moved the source file to `docs/merged/`.
+- **14 items still have no size:**
+  - Sketchbooks glink001003–001010. Note that the multi-file notes say these sketchbooks were shot on the Phase One at about 415–425 ppi, not at the 400 ppi used for the i2s Quartz records.
+  - glink002121 and glink002128
+  - The uningested glink002140–002143
