@@ -9,7 +9,9 @@ This session continued `../2026-11-09-glink-consolidation/`. Read that folder's 
   - Sub-agents wrote the text. The user then directed the fixes listed below.
   - Nobody has read through all 139 descriptions yet.
 - **Fully populated columns:** title, description, alt_text, visual_description, medium, tags.
-- **Backups of master** from before this session's edits are in the session scratchpad only. They are not kept anywhere permanent.
+- **Backups of master** are in `docs/merged/`:
+  - `20261109_glink_consolidation_archive_metadata_backup_pre_description.csv`, from before the descriptions were added.
+  - `20261109_glink_consolidation_archive_metadata_backup_pre_fixes.csv`, from after the descriptions and the 002044 title change but before the §35–36 fixes.
 
 ## How the descriptions were made
 
