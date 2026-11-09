@@ -326,3 +326,7 @@ The user confirmed that the glink002128 silhouettes are ink (painted, not cut). 
 ## 27. Update: 002116 medium confirmed
 
 The user confirmed that glink002116 is oil/acrylic on velvet fabric, so the medium is unchanged. Corrected the support in the visual_description ("velvet-like fabric" → "velvet fabric") and in the date_notes ("hexagonal board" → "hexagonal velvet panel"; "gouache or oil still life on brown board" → "oil/acrylic still life on velvet fabric").
+
+## 28. Update: 001010 medium
+
+Changed glink001010 medium from pencil/pen to multiple, per the user.
