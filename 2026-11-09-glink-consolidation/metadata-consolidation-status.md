@@ -280,3 +280,7 @@ The user confirmed that glink001006 stays at 4×6 (width_in=4, height_in=6) desp
 ## 19. Update: glink002128 master alt_text points to file
 
 Master `alt_text` for glink002128 is now `path: glink002128_alt_text.csv`, relative to the master's directory (`docs/`). The previous group-level alt text was replaced. visual_description is unchanged.
+
+## 20. Update: sketchbook alt_text/visual_description point to page files
+
+For the 10 sketchbooks (001001–001010), master `alt_text` and `visual_description` now read `path: glink0010NN.csv`, relative to `docs/`. Those page-level files and their `_review.csv` files stay in `docs/` so the references resolve. Items still missing alt_text/visual_description: 002140–002143 only.
