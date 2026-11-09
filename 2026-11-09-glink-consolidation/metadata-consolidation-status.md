@@ -264,3 +264,15 @@ The user confirmed that glink001006 stays at 4×6 (width_in=4, height_in=6) desp
 - Only the 002128 row changed.
 - `glink002128.csv` and `glink002128_review.csv` moved to `merged/`.
 - Items still missing alt_text and visual_description: 14 (001001–001010, 002140–002143).
+
+## 18. Update: individualized alt text for glink002128
+
+- Wrote `docs/glink002128_alt_text.csv` (identifier, page, image_id, alt_text; CRLF) with one unique alt text per image (pp1–7).
+- Each one gives:
+  - framed or unframed
+  - gender and facing direction
+  - distinguishing features: headwear, hair, collar or jabot, paper or frame condition, GL monogram
+- Each ends with `silhouette: #n`.
+- There are no group or count references.
+- Based on the page-level text in `merged/glink002128.csv`.
+- The master's group-level alt_text is unchanged.
