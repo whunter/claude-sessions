@@ -182,3 +182,23 @@ I merged the following into `20261109_glink_consolidation_archive_metadata.csv` 
 **Open:** for glink001006, the page-1 scan and the visual description ("small spiral-bound sketchbook in landscape format") are both landscape. The pixel ratio of 1.45 is close to 6:4. So this pad's printed "4" X 6"" probably doesn't follow the width × height convention, and the value should likely be 6 × 4. I asked the user to confirm.
 
 **Still without a size:** glink001010 (no cover scanned), glink002121, glink002128, and glink002140–002143.
+
+## 11. Update: sizes for 001010, 002128, 002121 (2026-11-09)
+
+| Item | W × H (in) | size_source | Notes |
+|---|---|---|---|
+| glink001010 | 14 × 17 | provided by project staff | Given by the user. Page 1 is portrait (6152 × 7492 px), which is consistent. |
+| glink002128 | 2 × 3 | provided by project staff | Given by the user. The scans (about 1830 × 1875 px) include the round wooden frame, so the pixels don't show the paper size. |
+| glink002121 | 10.5 × 6.5 | computed from image at 400 ppi | Computed in this session (see below). |
+
+**How glink002121 was computed:**
+- I downloaded both IIIF images from CloudFront at full size, which is the same as the master's pixel dimensions. Both carry a 400 dpi tag and were captured on the i2s Quartz.
+- I found the edges of the object against the dark background by checking brightness along about 40 lines across and 40 lines down each scan.
+  - Front: 4210 × 2618 px, which is 10.53 × 6.54 in. A slightly larger backing layer shows at the top and right, with an outer extent of about 10.58 × 6.62 in.
+  - Back (taped and wrapped in plastic): 4223 × 2619 px, which is 10.56 × 6.55 in.
+- Rounded to the nearest ¼ in, as for the other computed sizes: **10.5 × 6.5 in** (landscape). Confidence is high, because the front and back agree to within 0.03 in.
+- The script and images are in the session scratchpad and were not kept.
+
+`size_source` value "provided by project staff" was chosen by the assistant. The user may want a different wording.
+
+**Now every ingested item has a size.** The only items without one are the four uningested items glink002140–002143.
