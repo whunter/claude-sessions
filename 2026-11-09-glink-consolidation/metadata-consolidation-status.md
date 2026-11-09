@@ -377,7 +377,7 @@ The top-15 tag lists for multi-image records were recalculated without cover and
   - **Batches 14–25:** one batch for each multi-image record. Each agent saw up to 10 images: page 1 plus pages spaced evenly through the item. It also read all the page-level files (alt text and visual description, `_tags`, `_dates`).
 - The shared prompt is in `description_instructions.md` and the final text in `description_proposals.csv`.
 - **User input during the run:**
-  - 002044 shows Mary Baldwin University, Staunton VA. The description says so; the title still reads "(Mary Baldwin maybe?)".
+  - 002044 shows Mary Baldwin University, Staunton VA. The description says so, and the title was updated in §34.
   - All signatures are forms of Gretchen Hitt Link, usually "G Link". The 002116 description was softened to "faintly signed".
 - **Edits after review:**
   - Took out a sentence in 002050 that pointed out the teapot/coffee pot mismatch.
@@ -416,3 +416,7 @@ The top-15 tag lists for multi-image records were recalculated without cover and
     - 001001 medium "pencil" leaves out its watercolor and ink pages.
     - 001006 also uses colored pencil.
   - **Privacy:** 002088's description names Leslie Hoy and William L. Hunter, taken from the invitation.
+
+## 34. 002044 title
+
+- The user changed the title of glink002044 from "White building (Mary Baldwin maybe?)" to "White building, Mary Baldwin University". One line changed.
