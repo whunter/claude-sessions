@@ -318,3 +318,7 @@ Removed glink002140–002143 from the master: Dogwood Tree; House w/ gate (Birth
   - 001010, pencil/pen: "multiple" is an alternative because a few pages are chalk, colored pencil or oil pastel.
   - 002116, oil/acrylic: could be pastel on velour paper.
 - **Medium confidence:** 001005, 001006, 001009, 002123, 002128, 002129.
+
+## 26. Update: 002128 medium confirmed
+
+The user confirmed that the glink002128 silhouettes are ink (painted, not cut). The master value `ink` stands.
