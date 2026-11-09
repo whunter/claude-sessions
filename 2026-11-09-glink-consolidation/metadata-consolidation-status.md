@@ -292,3 +292,7 @@ Moved `glink001001_review.csv` … `glink001010_review.csv` to `merged/`. The pa
 ## 22. Update: Nag's Head titles disambiguated
 
 Appended the date to the duplicate "Nag's Head" titles: glink002008 → "Nag's Head, 1977" (date confidence medium; inscription 'Ju 77'), glink002054 → "Nag's Head, 1994" (high).
+
+## 23. Update: medium value normalized
+
+Changed medium "colored marker?" → "marker" (1 item). Medium is populated for 95/143 items (all paintings).
