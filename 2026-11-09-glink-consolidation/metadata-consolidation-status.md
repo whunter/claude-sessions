@@ -509,3 +509,18 @@ Master was backed up first to `merged/20261109_glink_consolidation_archive_metad
   - 1 in the `glink001009_dates.csv` notes, on p6.
 - All 14 were the extraction notes' own wording; none was inside a quoted inscription.
 - 12 lines changed. The source files in `merged/` were not changed.
+
+## 41. Format and medium fixes, and `||` in notes fields
+
+Master was backed up first to `merged/20261109_glink_consolidation_archive_metadata_backup_pre_delimiter.csv`.
+
+- **002035:** the user confirmed it's a doorway, so the visual_description ("small white gabled doorway") stands. No change.
+- **002061:** `format` changed from painting to **sketch**. This is a new format value; the counts are now 125 painting, 10 sketchbook, 2 photo, 1 silhouette and 1 sketch.
+- **001001:** medium changed from pencil to **pencil/watercolor/ink**.
+- **001006:** medium changed from pencil/pen to **pencil/colored pencil/pen**.
+- **002040 and 001003 p22:** the user is happy with the quoted inscriptions as they stand. Closed.
+- **Delimiter:** separators between notes are now `||` instead of `; `.
+  - **Master:** 320 separators in `consolidation_notes` and `date_notes`, with 139 lines changed.
+  - **`glink0010NN_dates.csv`:** the `notes` column, with 191 lines changed across the 10 files.
+  - **Not changed:** semicolons that are grammar inside sentences in `description` and `visual_description` (master and the page files), and everything in `merged/`.
+  - This closes consolidation hand-off item 4.
