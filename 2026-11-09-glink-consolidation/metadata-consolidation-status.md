@@ -237,3 +237,19 @@ Per the user, page-level dates for sketchbook images go in separate files. Wrote
 ## 15. Update: glink001006 size confirmed
 
 The user confirmed that glink001006 stays at 4×6 (width_in=4, height_in=6) despite the landscape scan. No change to the master.
+
+## 16. Missing-field summary (master, 143 items)
+
+| Field | Missing | Painting (130) | Sketchbook (10) | Photo (2) | Silhouette (1) |
+|---|---:|---:|---:|---:|---:|
+| title | 0 | 0 | 0 | 0 | 0 |
+| description | 143 | 130 | 10 | 2 | 1 |
+| date | 88 | 85 | 0 | 2 | 1 |
+| alt_text | 15 | 4 | 10 | 0 | 1 |
+| visual_description | 15 | 4 | 10 | 0 | 1 |
+
+- **alt_text and visual_description** are missing for the same 15 items:
+  - 001001–001010: page-level text exists in `glink0010NN.csv`.
+  - 002128: the silhouette; `glink002128.csv` exists.
+  - 002140–002143: the uningested paintings.
+- **date:** the 88 items have no date in the extraction, either because no inscription was found or because the item was not processed.
