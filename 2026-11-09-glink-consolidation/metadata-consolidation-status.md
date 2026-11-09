@@ -276,3 +276,7 @@ The user confirmed that glink001006 stays at 4×6 (width_in=4, height_in=6) desp
 - There are no group or count references.
 - Based on the page-level text in `merged/glink002128.csv`.
 - The master's group-level alt_text is unchanged.
+
+## 19. Update: glink002128 master alt_text points to file
+
+Master `alt_text` for glink002128 is now `path: glink002128_alt_text.csv`, relative to the master's directory (`docs/`). The previous group-level alt text was replaced. visual_description is unchanged.
