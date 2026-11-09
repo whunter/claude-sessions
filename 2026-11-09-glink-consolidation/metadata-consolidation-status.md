@@ -162,3 +162,23 @@ They are the only 12 ingested items with empty `alt_text` and `visual_descriptio
   - Sketchbooks glink001003–001010. Note that the multi-file notes say these sketchbooks were shot on the Phase One at about 415–425 ppi, not at the 400 ppi used for the i2s Quartz records.
   - glink002121 and glink002128
   - The uningested glink002140–002143
+
+## 10. Update: printed cover sizes merged (2026-11-09)
+
+The user noted that the sketchbook covers have their sizes printed on them. They confirmed that printed sizes follow the width × height convention, that they are accurate enough to use, and that 001003 and 001005 are 5.5 × 8.5 in (portrait). They also accepted the computed 7 × 9 in for 001001.
+
+I merged the following into `20261109_glink_consolidation_archive_metadata.csv` with `size_source` = **"printed on cover"**. Only these 7 rows changed; the rest of the file is byte-for-byte identical and keeps its CRLF line endings.
+
+| Item | W × H (in) | Page 1 px |
+|---|---|---|
+| glink001003 | 5.5 × 8.5 | portrait |
+| glink001004 | 5.5 × 8.5 | portrait |
+| glink001005 | 5.5 × 8.5 | portrait |
+| glink001006 | 4 × 6 | **landscape (2856 × 1963)**: conflicts with the printed orientation |
+| glink001007 | 9 × 12 | portrait |
+| glink001008 | 15 × 22 | portrait |
+| glink001009 | 16 × 12 | landscape |
+
+**Open:** for glink001006, the page-1 scan and the visual description ("small spiral-bound sketchbook in landscape format") are both landscape. The pixel ratio of 1.45 is close to 6:4. So this pad's printed "4" X 6"" probably doesn't follow the width × height convention, and the value should likely be 6 × 4. I asked the user to confirm.
+
+**Still without a size:** glink001010 (no cover scanned), glink002121, glink002128, and glink002140–002143.
