@@ -233,3 +233,7 @@ Added four columns to the master after `visual_description`: `date`, `date_as_wr
 - **glink001006:** 1985/2000 (medium). The 2000 comes from a single medium-confidence page.
 
 Per the user, page-level dates for sketchbook images go in separate files. Wrote `docs/glink001001_dates.csv` … `glink001010_dates.csv`, which together hold 252 rows with the same columns and CRLF line endings as the source. Combined with the 45 single-image rows in the master, that covers all 297 source rows. Sketchbook `date_notes` in the master now point to `<id>_dates.csv`. `20261009_glink_extracted_dates.csv` moved to `merged/`.
+
+## 15. Update: glink001006 size confirmed
+
+The user confirmed that glink001006 stays at 4×6 (width_in=4, height_in=6) despite the landscape scan. No change to the master.
