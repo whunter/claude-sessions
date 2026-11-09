@@ -284,3 +284,7 @@ Master `alt_text` for glink002128 is now `path: glink002128_alt_text.csv`, relat
 ## 20. Update: sketchbook alt_text/visual_description point to page files
 
 For the 10 sketchbooks (001001–001010), master `alt_text` and `visual_description` now read `path: glink0010NN.csv`, relative to `docs/`. Those page-level files and their `_review.csv` files stay in `docs/` so the references resolve. Items still missing alt_text/visual_description: 002140–002143 only.
+
+## 21. Update: sketchbook review files moved
+
+Moved `glink001001_review.csv` … `glink001010_review.csv` to `merged/`. The page-level files `glink0010NN.csv` stay in `docs/` because the master references them.
