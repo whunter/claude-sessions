@@ -253,3 +253,14 @@ The user confirmed that glink001006 stays at 4×6 (width_in=4, height_in=6) desp
   - 002128: the silhouette; `glink002128.csv` exists.
   - 002140–002143: the uningested paintings.
 - **date:** the 88 items have no date in the extraction, either because no inscription was found or because the item was not processed.
+
+## 17. Update: glink002128 merged
+
+- glink002128 (Silhouettes, 7 images) now has an item-level `alt_text` and `visual_description` in the master.
+- The visual description summarizes all seven pages from `glink002128.csv`:
+  - two framed silhouettes with "GL" monograms
+  - five unframed
+- The review CSV's only suggestions (pp1–2) confirm the existing "GL" monogram wording, so there were no corrections to apply.
+- Only the 002128 row changed.
+- `glink002128.csv` and `glink002128_review.csv` moved to `merged/`.
+- Items still missing alt_text and visual_description: 14 (001001–001010, 002140–002143).
