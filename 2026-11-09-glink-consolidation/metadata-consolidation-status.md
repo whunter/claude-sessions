@@ -219,3 +219,17 @@ I merged the following into `20261109_glink_consolidation_archive_metadata.csv` 
   - `20261009_glink_extracted_dates.csv`
   - the `glink001001`–`001010` page CSVs, with their review files
   - `glink002128.csv` and `glink002128_review.csv`
+
+## 14. Update: extracted dates merged (item level)
+
+Added four columns to the master after `visual_description`: `date`, `date_as_written`, `date_confidence`, `date_notes` (master now 39 columns). 55 of 143 items now have a date.
+
+- **Single-image items (45):** values copied directly from `20261009_glink_extracted_dates.csv`. `date` is the EDTF-style `date_normalized` (e.g. `1980-05`, `195X`, `XXXX-07-21`), and `date_notes` holds the extraction note, including alternative readings.
+- **Sketchbooks (10):** `date` is the earliest/latest year across high- and medium-confidence pages, e.g. `1934/1937`. Low-confidence readings are not counted. `date_confidence` is `high` when both endpoint years are supported by a high-confidence page. These pages were excluded as out of sequence or later additions:
+  - 001001: '76 (p49) and Sept 2011 (p50)
+  - 001005: 1971 (p24)
+  - 001007: June 77 (p41) and June '97 (p42), both loose inserts
+- **glink001008:** the only reading is low confidence ('88, could be 68/86/66), so it is kept as `1988`/low with the note.
+- **glink001006:** 1985/2000 (medium). The 2000 comes from a single medium-confidence page.
+
+`20261009_glink_extracted_dates.csv` stays in `docs/` because its page-level dates for the sketchbooks are not represented in the master. It can move to `merged/` once page-level data has a home, or now if item-level is sufficient.
