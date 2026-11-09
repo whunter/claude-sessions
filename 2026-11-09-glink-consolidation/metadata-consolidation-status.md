@@ -352,3 +352,11 @@ Changed glink001010 medium from pencil/pen to multiple, per the user.
   - `tags` in master and in all 12 `*_tags.csv` files
   - `source_tiff_files` in master (2 records)
 - Semicolons in prose fields are unchanged: visual_description, date_notes, consolidation_notes, and the notes column of the `*_dates.csv` files.
+
+## 31. Tags trimmed to the top 15
+
+- In master, the aggregated `tags` lists of the 12 multi-image records are now cut to the 15 most common tags.
+  - "Most common" means the number of that record's images the tag appears on.
+  - Ties are broken by order of first appearance.
+- The per-image `*_tags.csv` files are unchanged.
+- No single-image record had more than 13 tags, so none of them changed.
