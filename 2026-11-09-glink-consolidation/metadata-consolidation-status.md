@@ -330,3 +330,17 @@ The user confirmed that glink002116 is oil/acrylic on velvet fabric, so the medi
 ## 28. Update: 001010 medium
 
 Changed glink001010 medium from pencil/pen to multiple, per the user.
+
+## 29. Tags column
+
+- Added a `tags` column to master right after `visual_description`. The master now has 40 columns.
+- Tags were generated from the 536 scaled images in 54 batches of 10, one sub-agent per batch, using each image together with the title, alt_text and visual_description already in master.
+  - Each image has 4–13 tags, lowercase and separated by `; `.
+  - Tags leave out medium, dates and the artist's name.
+- 127 single-image records have their tags written directly in master.
+- 12 multi-image records reference a separate file instead, as `path: <id>_tags.csv` in docs/:
+  - the sketchbooks glink001001–001010
+  - glink002121 (2 images)
+  - glink002128 (7 silhouettes)
+- There are 1,082 distinct tags. The most common are sketch (322), architecture (191), tree (172) and landscape (115).
+- The merge script is in `tags_merge.py`.
