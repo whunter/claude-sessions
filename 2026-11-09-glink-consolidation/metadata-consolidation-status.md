@@ -344,3 +344,11 @@ Changed glink001010 medium from pencil/pen to multiple, per the user.
   - glink002128 (7 silhouettes)
 - There are 1,082 distinct tags. The most common are sketch (322), architecture (191), tree (172) and landscape (115).
 - The merge script is in `tags_merge.py`.
+
+## 30. Aggregated tags and the `||` delimiter
+
+- In master, the `tags` value of the 12 multi-image records is now the full list of unique tags from all pages, in order of first appearance. This replaces the `path: <id>_tags.csv` reference. The per-image `*_tags.csv` files are still in docs/.
+- Multi-valued lists now use `||` as the delimiter instead of `;`. This applies to:
+  - `tags` in master and in all 12 `*_tags.csv` files
+  - `source_tiff_files` in master (2 records)
+- Semicolons in prose fields are unchanged: visual_description, date_notes, consolidation_notes, and the notes column of the `*_dates.csv` files.
