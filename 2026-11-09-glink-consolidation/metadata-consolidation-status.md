@@ -141,3 +141,10 @@ They are the only 12 ingested items with empty `alt_text` and `visual_descriptio
   - `20261009_glink_extracted_dates.csv`
   - `glink001001`–`001010`, `glink002121` and `glink002128` page CSVs, with their `_review.csv` files
 - Left in place because they are reference documents, not metadata CSVs: `DIL_file_naming_convention.docx`, `gretchen_link_digitization_guide.xlsx`, `gretchen_link_scanning_guidelines.docx`.
+
+## 8. Update: glink002001 height resolved (2026-11-09)
+
+- The user confirmed that glink002001 is landscape and that its height is **7.75 in** (10 × 7.75 in). Every file already recorded it as landscape.
+- The master was already correct.
+- Fixed `merged/20261008_glink_computed-sizes_archive_metadata.csv`: `height_in` changed from 7.5 to 7.75, and `size_notes` from "10 x 7.5 in" to "10 x 7.75 in". The file's Windows-style (CRLF) line endings were kept.
+- The conflict in §5 item 1 is now **resolved**.
