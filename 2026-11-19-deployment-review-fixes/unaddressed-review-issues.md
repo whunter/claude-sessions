@@ -11,25 +11,12 @@ Fixed this session, and not repeated here:
 - #1 DNS record after an interrupted first deploy;
 - #2 lifecycle policy tied to one backend's service role;
 - #3 exact platform version pin;
-- #7 duplicate SSM read in `ensureApplication`.
+- #7 duplicate SSM read in `ensureApplication`;
+- #4 `--branch X` while on branch Y: verified, and `frontend:deploy` now
+  refuses a `--branch` that differs from the checked-out branch (a detached
+  HEAD, as in CI, still passes).
 
 ## Likely bugs
-
-### 4. `--branch X` while on branch Y ships Y's HEAD as X
-
-`infra/lib/frontend/frontend-cli.ts:213`
-
-The commit is `git rev-parse HEAD`, but the version label (`<slug>-<sha>`), its
-description ("commit <sha> of X") and the target environment all come from
-`--branch`. On a redeploy, `eb deploy` ships the checked-out HEAD to
-`dlpnext-X`. The tag check passes, because it compares only the `--branch`
-value. Nothing warns.
-
-Possible fix:
-
-- refuse when `--branch` differs from the current branch and HEAD isn't the
-  tip of X (`git rev-parse X`);
-- or allow it only on a detached HEAD, the case `--branch` exists for, as in CI.
 
 ### 5. `frontend:status` ignores the backend's region
 
