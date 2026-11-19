@@ -27,13 +27,8 @@ Fixed this session, and not repeated here:
   of `dlp-access-next-web-deploy`. Destroy's single `get-parameter` read is
   unchanged;
 - #9 `requireBackend()` twice per command: the CLI now resolves the backend
-  once, with `--production`, and passes it to `planFrontend` as `backend`.
+  once, with `--production`, and passes it to `planFrontend` as `backend`;
+- #10 stale `infra/cdk.context.json`: removed (already gitignored). A
+  `cdk synth` of dev ran with no lookups and wrote no new one.
 
-## Cleanups
-
-### 10. Stale `infra/cdk.context.json`
-
-It is a cached `HostedZone.fromLookup` result from the removed Web stack.
-Nothing in the backend-only CDK app reads it. It also commits AWS account ID
-226388486048, against the "no account ID is stored here" intent in `web.ts`.
-Delete it, and check that `cdk synth` writes nothing new back.
+No review issues are left.
