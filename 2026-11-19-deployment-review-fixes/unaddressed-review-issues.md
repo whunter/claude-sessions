@@ -14,22 +14,12 @@ Fixed this session, and not repeated here:
 - #7 duplicate SSM read in `ensureApplication`;
 - #4 `--branch X` while on branch Y: verified, and `frontend:deploy` now
   refuses a `--branch` that differs from the checked-out branch (a detached
-  HEAD, as in CI, still passes).
+  HEAD, as in CI, still passes);
+- #5 `frontend:status` ignores the backend's region: verified as latent (a
+  test pinned the named envs to `FRONTEND_REGION`, but nothing enforced it).
+  `planFrontend` now refuses a backend env outside `FRONTEND_REGION`.
 
 ## Likely bugs
-
-### 5. `frontend:status` ignores the backend's region
-
-`infra/lib/frontend/frontend-cli.ts:149`
-
-Status always queries `FRONTEND_REGION`, while deploy and destroy use the
-backend env's region. `planFrontend` never checks that the two match, although
-the `web.ts` comment says a frontend can only attach to a backend in that
-region. Every env is currently `us-east-1`, so nothing breaks today. A backend
-in another region would make status say "not deployed".
-
-Possible fix: refuse a backend env outside `FRONTEND_REGION` in
-`planFrontend`.
 
 ### 6. Logout can fail before clearing the session cookie
 
