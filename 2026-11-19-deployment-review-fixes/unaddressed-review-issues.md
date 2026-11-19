@@ -25,18 +25,11 @@ Fixed this session, and not repeated here:
 - #8 `readBackend`'s four SSM calls: now one `ssm get-parameters`, matched by
   name, naming every missing parameter. `ssm:GetParameters` is already in v2
   of `dlp-access-next-web-deploy`. Destroy's single `get-parameter` read is
-  unchanged.
+  unchanged;
+- #9 `requireBackend()` twice per command: the CLI now resolves the backend
+  once, with `--production`, and passes it to `planFrontend` as `backend`.
 
 ## Cleanups
-
-### 9. `requireBackend()` runs twice per command
-
-`infra/lib/frontend/frontend-cli.ts:209`
-
-`planWithRunner` resolves the backend env to get the region, then
-`planFrontend` resolves it again, with different production arguments.
-`planFrontend` could take the already-resolved config, or the runner could be
-built from `plan.region`.
 
 ### 10. Stale `infra/cdk.context.json`
 
