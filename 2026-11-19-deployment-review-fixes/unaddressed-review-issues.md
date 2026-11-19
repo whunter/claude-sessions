@@ -21,18 +21,13 @@ Fixed this session, and not repeated here:
 - #6 logout failing before clearing the session cookie: verified. The route
   now always clears `dlp_id_token`, and redirects home when Cognito's logout
   URL can't be built (discovery failure, no `end_session_endpoint`, missing
-  env). Not run end to end: the root app has no tests.
+  env). Not run end to end: the root app has no tests;
+- #8 `readBackend`'s four SSM calls: now one `ssm get-parameters`, matched by
+  name, naming every missing parameter. `ssm:GetParameters` is already in v2
+  of `dlp-access-next-web-deploy`. Destroy's single `get-parameter` read is
+  unchanged.
 
 ## Cleanups
-
-### 8. `readBackend` makes four sequential SSM calls
-
-`infra/lib/frontend/deploy.ts` (`readBackend`)
-
-Each `aws ssm get-parameter` starts a new CLI process (about 1–2 s each). One
-`ssm get-parameters --names a b c d` would do, with `InvalidParameters` used
-to report the missing ones. Note that `ssm:GetParameters` is a separate IAM
-action from `ssm:GetParameter` (see the hand-off).
 
 ### 9. `requireBackend()` runs twice per command
 
