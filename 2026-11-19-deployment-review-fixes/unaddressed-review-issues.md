@@ -17,21 +17,11 @@ Fixed this session, and not repeated here:
   HEAD, as in CI, still passes);
 - #5 `frontend:status` ignores the backend's region: verified as latent (a
   test pinned the named envs to `FRONTEND_REGION`, but nothing enforced it).
-  `planFrontend` now refuses a backend env outside `FRONTEND_REGION`.
-
-## Likely bugs
-
-### 6. Logout can fail before clearing the session cookie
-
-`src/app/auth/logout/route.ts:7`
-
-The route awaits OIDC discovery (`getClient()`) before building the response
-that expires `dlp_id_token`. If discovery fails or is slow, or
-`end_session_endpoint` is missing, the user gets a 500 and stays signed in
-until the ID token expires.
-
-Possible fix: clear the cookie in all cases. If discovery fails, redirect to
-`/` (or the app's base URL) instead of the Cognito logout endpoint.
+  `planFrontend` now refuses a backend env outside `FRONTEND_REGION`;
+- #6 logout failing before clearing the session cookie: verified. The route
+  now always clears `dlp_id_token`, and redirects home when Cognito's logout
+  URL can't be built (discovery failure, no `end_session_endpoint`, missing
+  env). Not run end to end: the root app has no tests.
 
 ## Cleanups
 
