@@ -27,6 +27,7 @@ later run found the environment and took `redeploy`. That path only ran
 still launching.
 
 `redeploy` now does the following:
+
 - looks up the hosted zone;
 - waits through `Launching` (LAUNCHED waiter) or `Updating` (UPDATED waiter);
 - refuses any other status that isn't Ready, such as `Terminating`;
@@ -47,6 +48,7 @@ It was never set again while `MaxCountRule.Enabled` stayed true. Destroying an
 
 When a new frontend is set up, `ensureApplication` now sets the policy to its
 backend's role in two cases:
+
 - the policy is missing;
 - the recorded role's backend is gone, meaning its
   `/dlp-access-next/<env>/eb-service-role-arn` SSM parameter no longer holds
@@ -71,6 +73,7 @@ off that list, about three releases away. The comment's claim that only a major
 change needs a bump was wrong for creating new environments.
 
 The fix:
+
 - `PLATFORM_BRANCH` (`os`, `runtime`) in `infra/lib/config/web.ts` replaces
   `SOLUTION_STACK`;
 - `latestSolutionStack` picks the branch's highest version, comparing numbers;

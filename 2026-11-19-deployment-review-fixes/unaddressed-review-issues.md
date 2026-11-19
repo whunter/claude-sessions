@@ -7,6 +7,7 @@ numbers come from the review and are as of `239e207`. Fixes 1–3 have moved
 lines in `deploy.ts` and `frontend.ts` since then.
 
 Fixed this session, and not repeated here:
+
 - #1 DNS record after an interrupted first deploy;
 - #2 lifecycle policy tied to one backend's service role;
 - #3 exact platform version pin;
@@ -25,6 +26,7 @@ description ("commit <sha> of X") and the target environment all come from
 value. Nothing warns.
 
 Possible fix:
+
 - refuse when `--branch` differs from the current branch and HEAD isn't the
   tip of X (`git rev-parse X`);
 - or allow it only on a detached HEAD, the case `--branch` exists for, as in CI.

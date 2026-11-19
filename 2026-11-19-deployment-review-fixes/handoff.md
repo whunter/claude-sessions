@@ -40,6 +40,7 @@
   The IAM user's policy drafted for issue #6 covers the Route53 UPSERT, but it
   is still unconfirmed whether that policy is attached to the
   `vtdlp-access-deploy` group.
+
 - The lifecycle repair needs `ssm:GetParameters`. The issue #5 inline policy
   granted `ssm:GetParameter` (singular) on `/dlp-access-next/*`, which is a
   separate IAM action. Add `ssm:GetParameters`, or the first deploy that finds
