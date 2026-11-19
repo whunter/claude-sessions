@@ -51,7 +51,7 @@ This maps each header in `vtdlppprd-collection-metadata-template.csv` to its clo
 
 ### Headers the ingest accepts that vtdlppprd collections don't use yet
 
-The ingest accepts these headers (`data/headers_keys.json` and `set_attribute` in `dlp-ingest`), but no record in the vtdlppprd `Collection` table has them. Many are meant for items, but the ingest still accepts them on a collection CSV. Each one is described in [Accepted by ingest, not yet used](#accepted-by-ingest-not-yet-used) below.
+The ingest accepts these headers (`data/headers_keys.json` and `set_attribute` in `dlp-ingest`), but no record in the vtdlppprd `Collection` table has them. Seven item-only headers that the ingest also accepts (`extracted_text`, `visual_description`, `download_link`, `is_format_of`, `format_physical`, `basis_of_record` and `taxonomy`) are left out because they don't apply to collections. Each one is described in [Accepted by ingest, not yet used](#accepted-by-ingest-not-yet-used) below.
 
 | Our header | Dublin Core term | Match | In Collection API |
 |---|---|---|---|
@@ -64,7 +64,6 @@ The ingest accepts these headers (`data/headers_keys.json` and `set_attribute` i
 | `temporal` | `dcterms:temporal` | Exact | No |
 | `coverage` | `dcterms:coverage` | Exact | No |
 | `medium` | `dcterms:medium` | Exact | No |
-| `format_physical` | `dcterms:medium` | Close | No |
 | `resource_type` | `dcterms:type` | Close | No |
 | `conforms_to` | `dcterms:conformsTo` | Exact | No |
 | `license` | `dcterms:license` | Exact | No |
@@ -74,17 +73,11 @@ The ingest accepts these headers (`data/headers_keys.json` and `set_attribute` i
 | `belongs_to` | `dcterms:isPartOf` | Loose | No |
 | `has_part` | `dcterms:hasPart` | Exact | No |
 | `has_format` | `dcterms:hasFormat` | Exact | No |
-| `is_format_of` | `dcterms:isFormatOf` | Exact | No |
 | `has_version` | `dcterms:hasVersion` | Exact | No |
 | `is_version_of` | `dcterms:isVersionOf` | Exact | No |
 | `references` | `dcterms:references` | Exact | No |
-| `download_link` | `dcterms:hasFormat` | Loose | No |
 | `provider` | `dcterms:publisher` | Loose | Old Amplify schema only |
 | `alt_text` | `dcterms:description` | Loose | Yes |
-| `visual_description` | `dcterms:description` | Loose | No |
-| `extracted_text` | — | None | No |
-| `basis_of_record` | — (Darwin Core `dwc:basisOfRecord`) | None | No |
-| `taxonomy` | — (Darwin Core taxon terms) | None | No |
 | `title_template` | — | None | Yes |
 | `filename` | — | None | n/a (not stored) |
 
@@ -105,7 +98,7 @@ The ingest saves these headers to the vtdlppprd `Collection` table, but the site
 | `format` | 3 |
 | `related_url` | 1 |
 
-**Accepted by the ingest but not used yet (27):** `alternative`, `basis_of_record`, `belongs_to`, `circa`, `conforms_to`, `contributor`, `coverage`, `created`, `download_link`, `explicit`, `extracted_text`, `format_physical`, `has_format`, `has_part`, `has_version`, `is_format_of`, `is_version_of`, `license`, `medium`, `other_identifier`, `provider`, `publisher`, `references`, `resource_type`, `taxonomy`, `temporal`, `visual_description`. `provider` is the one exception: the old Amplify schema has it, but the CDK schema doesn't.
+**Accepted by the ingest but not used yet (20):** `alternative`, `belongs_to`, `circa`, `conforms_to`, `contributor`, `coverage`, `created`, `explicit`, `has_format`, `has_part`, `has_version`, `is_version_of`, `license`, `medium`, `other_identifier`, `provider`, `publisher`, `references`, `resource_type`, `temporal`. `provider` is the one exception: the old Amplify schema has it, but the CDK schema doesn't.
 
 `filename` isn't on either list. The ingest never stores it; it only uses it to build the thumbnail and manifest paths.
 
@@ -408,12 +401,6 @@ No record in the vtdlppprd `Collection` table has any of these fields, so there'
 - **DC example:** `oil on canvas` or `newspapers`
 - **Site reference example:** `newspapers`
 
-#### `format_physical` → `dcterms:medium` (Close)
-- **DC definition / recommended usage:** same as `medium`.
-- **DC example:** `photograph`
-- **Site reference example:** `photograph`
-- **Notes:** In our schema, `format` holds the digital format (MIME type) and `format_physical` holds the format of the original. In DC that physical side belongs in `medium`, which would then overlap with our own `medium` field.
-
 #### `resource_type` → `dcterms:type` (Close)
 - **DC definition:** "The nature or genre of the resource."
 - **DC recommended usage:** "Recommended practice is to use a controlled vocabulary such as the DCMI Type Vocabulary [DCMI-TYPE]. To describe the file format, physical medium, or dimensions of the resource, use the property Format."
@@ -474,12 +461,6 @@ No record in the vtdlppprd `Collection` table has any of these fields, so there'
 - **DC example:** `https://example.edu/finding-aids/ms1990-057.pdf`
 - **Site reference example:** `https://digital.lib.vt.edu/archive/s253n52s`
 
-#### `is_format_of` → `dcterms:isFormatOf` (Exact)
-- **DC definition:** "A pre-existing related resource that is substantially the same as the described resource, but in another format."
-- **DC recommended usage:** "This property is intended to be used with non-literal values. This property is an inverse property of Has Format."
-- **DC example:** `https://example.edu/physical/ms1990-057`
-- **Site reference example:** `Ms1990-057_box1_folder3.tif`
-
 #### `has_version` → `dcterms:hasVersion` (Exact)
 - **DC definition:** "A related resource that is a version, edition, or adaptation of the described resource."
 - **DC recommended usage:** "Changes in version imply substantive changes in content rather than differences in format. This property is intended to be used with non-literal values. This property is an inverse property of Is Version Of."
@@ -498,12 +479,6 @@ No record in the vtdlppprd `Collection` table has any of these fields, so there'
 - **DC example:** `https://example.edu/exhibits/april-16`
 - **Site reference example:** `https://ecdysis.org/collections/individual/index.php?occid=1730992`
 
-#### `download_link` → `dcterms:hasFormat` (Loose)
-- **DC definition / recommended usage:** same as `has_format`.
-- **DC example:** `https://example.edu/downloads/vtac.zip`
-- **Site reference example:** `https://www.morphosource.org/concern/biological_specimens/000621373`
-- **Notes:** DC has no "download URL" property. DCAT's `dcat:downloadURL` is the exact match.
-
 #### `provider` → `dcterms:publisher` (Loose)
 - **DC definition:** "An entity responsible for making the resource available."
 - **DC recommended usage:** No comment from DCMI.
@@ -511,37 +486,14 @@ No record in the vtdlppprd `Collection` table has any of these fields, so there'
 - **Site reference example:** none.
 - **Notes:** This matches Europeana's `edm:provider` (the aggregator that supplies the data). The old Amplify Collection schema has this field; the new CDK schema doesn't.
 
-### Accessibility and full text
+### Accessibility
 
 #### `alt_text` → `dcterms:description` (Loose)
 - **DC definition:** "An account of the resource."
 - **DC recommended usage:** "Description may include but is not limited to: an abstract, a table of contents, a graphical representation, or a free-text account of the resource."
 - **DC example:** `Painted egg decorated with orange and maroon stripes`
 - **Site reference example:** `page1: Detail of barn structure`
-- **Notes:** DC has no accessibility properties. This is short screen-reader text for an image. The site's reference marks it as required for items.
-
-#### `visual_description` → `dcterms:description` (Loose)
-- **DC definition / recommended usage:** same as `alt_text`.
-- **DC example:** `Black-and-white photograph of a two-story brick house with a gabled roof.`
-- **Site reference example:** `Black-and-white photograph showing the Blue Ridge Parkway bordered by forested and agricultural land.`
-- **Notes:** The site's reference says this is stored as JSON, with one description for the whole item and one for each page or file.
-
-#### `extracted_text` → no DC equivalent (None)
-- **DC definition / usage:** —
-- **Site reference example:** `{"page1": "The records of the Virginia Tech Libraries...", "page2": "Chapter 1: Introduction..."}`
-- **Notes:** This is per-page OCR or full text, stored as JSON. It's for items, not collection descriptions.
-
-### Natural history (Darwin Core, not Dublin Core)
-
-#### `basis_of_record` → no DC equivalent (Darwin Core `dwc:basisOfRecord`)
-- **DC definition / usage:** —
-- **Darwin Core usage:** "The specific nature of the data record." Use a value from a controlled vocabulary such as `PreservedSpecimen`, `FossilSpecimen`, `LivingSpecimen`, `MaterialSample`, `HumanObservation` or `MachineObservation`.
-- **Site reference example:** `PreservedSpecimen`
-
-#### `taxonomy` → no DC equivalent (Darwin Core taxon terms)
-- **DC definition / usage:** —
-- **Darwin Core usage:** Darwin Core has one term per rank (`dwc:kingdom`, `dwc:phylum`, `dwc:class`, `dwc:order`, `dwc:family`, `dwc:genus`, `dwc:scientificName`) instead of a single combined string.
-- **Site reference example:** `Kingdom: Animalia Phylum: Arthropoda Clade: Pancrustacea Class: Insecta Order: Lepidoptera Family: Pieridae Genus: Eurema Species: Abaeis nicippe`
+- **Notes:** DC has no accessibility properties. This is short screen-reader text for an image. On a collection it will be used for the thumbnail's alt text.
 
 ### Site and ingest controls
 
