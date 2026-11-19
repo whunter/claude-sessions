@@ -8,7 +8,7 @@
 
 ## Next steps
 
-1. **Review the template with collection managers.** Decide whether the 32 headers that no collection uses should stay. Many are for items, such as `extracted_text`, `alt_text`, `taxonomy` and `basis_of_record`, and could be dropped from a collection-only template.
+1. **Review the template with collection managers.** The 7 item-only headers have been removed, which leaves 25 headers that no collection uses yet. `alt_text` (for the thumbnail) and `other_identifier` were kept on purpose. The crosswalk still documents the 7 removed headers.
 2. **Decide what to do about fields the API doesn't return.** `rights_statement`, `date`, `type`, `extent`, `format`, `repository`, `related_url` and `tags` already have data in vtdlppprd. The `Collection` type in `dlp-access-next-cdk/infra/schema/schema.graphql` doesn't include them, so the site can't show them. The fix is either to add them to the schema, or to stop the ingest from accepting them for collections.
 3. **Ask about the undocumented headers:** `belongs_to`, `circa`, `provider` and `resource_type`. Their DC mappings in the crosswalk are guesses based on the names.
 4. **Possible ingest clean-ups in `dlp-ingest`:**

@@ -13,7 +13,7 @@ Give collection managers a list of the Collection metadata headers they can fill
 | File | What it is |
 |---|---|
 | `vtdlppprd-collection-newest-5.csv` | Raw export of the 5 newest collections, by `createdAt`. It has all 48 attributes found in the table: every attribute any of the 67 records has. Lists and maps are written as JSON. |
-| `vtdlppprd-collection-metadata-template.csv` | The same 5 collections cut down to the 66 headers a manager can supply, with multiple values joined by `||` so the file is valid ingest input. Columns 1–34 are the ones the table uses. Columns 35–66 are headers the ingest accepts but no vtdlppprd collection uses; those are empty. |
+| `vtdlppprd-collection-metadata-template.csv` | The same 5 collections cut down to the 59 headers a manager can supply, with multiple values joined by `||` so the file is valid ingest input. Columns 1–34 are the ones the table uses. Columns 35–59 are headers the ingest accepts but no vtdlppprd collection uses; those are empty. |
 | `vtdlppprd-collection-dublin-core-crosswalk.md` | Maps each header to its closest `dcterms:` term and rates the match (Exact, Close, Loose or None). For each term it gives DCMI's recommended usage, an illustrative DC example, and a real value from vtdlppprd. When vtdlppprd has no value, it uses the example from the site's field reference instead. It also shows whether the Collection GraphQL type returns each field. |
 
 ## How the header list was built
@@ -24,6 +24,7 @@ Give collection managers a list of the Collection metadata headers they can fill
 - **Removed, not written by the current ingest:** `collectionOptions`. Also `note`, because the ingest saves a CSV `note` column as `embargo_note`.
 - **Kept from the form:** `collection_category` (form only; the CSV value is ignored), plus `parent_collection_identifier`, `visibility`, `embargo_start_date` and `embargo_end_date`. A CSV value for these four overrides the form.
 - **Added:** every header in `data/headers_keys.json` (single- and multi-value lists), plus `visibility`, `archived` and `filename`, that the table doesn't use yet. That's 32 headers.
+- **Removed as item-only:** `extracted_text`, `visual_description`, `download_link`, `is_format_of`, `format_physical`, `basis_of_record` and `taxonomy`. These describe a single object and its files, so they don't belong in a collection-only template. `alt_text` stays because it will be used for the collection thumbnail. `other_identifier` stays too. That leaves 25 of the 32 added headers.
 
 ## Findings
 
