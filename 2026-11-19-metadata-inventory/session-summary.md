@@ -27,7 +27,7 @@ Give collection managers a list of the Collection metadata headers they can fill
 
 ## Findings
 
-- **Fields saved but never returned by the API.** The `Collection` GraphQL type doesn't include 8 headers that vtdlppprd already uses: `rights_statement`, `date`, `extent`, `format`, `related_url`, `repository`, `tags` and `type`. It also doesn't include 28 of the 32 headers the ingest accepts but no collection uses. The ingest writes all of these to DynamoDB, but the site can't read them. The old Amplify schema and the CDK schema match here, except `provider`, which only the old schema has.
+- **Fields saved but never returned by the API.** The `Collection` GraphQL type doesn't include 8 headers that vtdlppprd already uses: `rights_statement`, `date`, `extent`, `format`, `related_url`, `repository`, `tags` and `type`. It also doesn't include 27 of the 32 headers the ingest accepts but no collection uses (4 are in the API, and `filename` is never stored). The ingest writes all of these to DynamoDB, but the site can't read them. The old Amplify schema and the CDK schema match here, except `provider`, which only the old schema has.
 - **`explicit` is saved under its own name.** The ingest treats it as true/false, the same as `explicit_content`, but saves it as `explicit`, which the Collection type doesn't have.
 - **Data quality, compared with DC guidance:**
   - `create_date` and `modified_date` look like record timestamps and use `YYYY/MM/DD`, not ISO 8601.

@@ -88,6 +88,27 @@ The ingest accepts these headers (`data/headers_keys.json` and `set_attribute` i
 | `title_template` | — | None | Yes |
 | `filename` | — | None | n/a (not stored) |
 
+### Headers the Collection API doesn't return
+
+The ingest saves these headers to the vtdlppprd `Collection` table, but the site reads collections through the GraphQL API, and the `Collection` type doesn't include these fields. Until the schema adds them, values in these columns are stored but **won't appear on the site**. (Checked against `dlp-access-next-cdk/infra/schema/schema.graphql` and the old Amplify schema on 2026-11-19.)
+
+**Already used in vtdlppprd (8).** These collections have data in these fields that the site can't show:
+
+| Header | Records with a value |
+|---|---|
+| `date` | 12 |
+| `tags` | 6 |
+| `rights_statement` | 5 |
+| `extent` | 5 |
+| `type` | 4 |
+| `repository` | 4 |
+| `format` | 3 |
+| `related_url` | 1 |
+
+**Accepted by the ingest but not used yet (27):** `alternative`, `basis_of_record`, `belongs_to`, `circa`, `conforms_to`, `contributor`, `coverage`, `created`, `download_link`, `explicit`, `extracted_text`, `format_physical`, `has_format`, `has_part`, `has_version`, `is_format_of`, `is_version_of`, `license`, `medium`, `other_identifier`, `provider`, `publisher`, `references`, `resource_type`, `taxonomy`, `temporal`, `visual_description`. `provider` is the one exception: the old Amplify schema has it, but the CDK schema doesn't.
+
+`filename` isn't on either list. The ingest never stores it; it only uses it to build the thumbnail and manifest paths.
+
 ---
 
 ## Identification
