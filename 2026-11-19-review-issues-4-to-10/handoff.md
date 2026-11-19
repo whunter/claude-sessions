@@ -2,10 +2,9 @@
 
 ## State
 
-- Branch `whunter/feature/add/deployment`, head `e312bb4`. It is **9 commits
-  ahead of `origin/whunter/feature/add/deployment` (`239e207`), not pushed**:
-  the 3 from the previous session (`ea459f5`, `bd207c4`, `58ac0e4`) plus the 6
-  from this one. The working tree is clean.
+- Branch `whunter/feature/add/deployment`, head `e312bb4`, **pushed** to
+  origin: the 3 commits from the previous session (`ea459f5`, `bd207c4`,
+  `58ac0e4`) plus the 6 from this one. The working tree is clean.
 - All ten findings from the 2026-11-18 `/code-review` are now fixed. See
   `../2026-11-19-deployment-review-fixes/unaddressed-review-issues.md`, which
   now records each fix and says none are left.
@@ -25,12 +24,11 @@
 
 ## Next steps
 
-1. Decide whether to push the 9 commits.
-2. Try the logout fix (#6) in a running app. The root app has no test setup,
+1. Try the logout fix (#6) in a running app. The root app has no test setup,
    so it was only lint- and Prettier-checked. One way: run `npm run dev` with
    a bad `COGNITO_ISSUER`, sign out, and check that `dlp_id_token` is cleared
    and the browser lands on `/`.
-3. Still unverified on AWS (carried over from the previous hand-off):
+2. Still unverified on AWS (carried over from the previous hand-off):
    - redeploying an environment that is still `Launching`;
    - the lifecycle policy moving off a destroyed `f-` backend's role;
    - whether the Route53 UPSERT policy is attached to the
