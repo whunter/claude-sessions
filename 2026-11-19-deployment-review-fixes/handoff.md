@@ -41,7 +41,8 @@
   is still unconfirmed whether that policy is attached to the
   `vtdlp-access-deploy` group.
 
-- The lifecycle repair needs `ssm:GetParameters`. The issue #5 inline policy
-  granted `ssm:GetParameter` (singular) on `/dlp-access-next/*`, which is a
-  separate IAM action. Add `ssm:GetParameters`, or the first deploy that finds
-  a policy on another backend's role will fail with AccessDenied.
+- The lifecycle repair needs `ssm:GetParameters`, which is a separate IAM
+  action from `ssm:GetParameter`. It was added on 2026-11-19 as v2 (default)
+  of the customer-managed policy `dlp-access-next-web-deploy`, still limited to
+  `/dlp-access-next/*`. v1 is kept for rollback. A `get-parameters` call as the
+  IAM user was checked and works.
