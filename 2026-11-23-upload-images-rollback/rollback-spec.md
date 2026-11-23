@@ -141,3 +141,18 @@ Build test-first against the existing fakes (`fakes3_test.go`,
 1. Forward-run report changes (streamed steps, new columns, intended action
    kept on failure, table recorded).
 2. The `-rollback` command.
+
+## As built (piece 2 review)
+
+- The forward run also writes a line just before a row's first S3 write
+  and before its `UpdateItem` (steps_done as it stands), and records
+  `ddb_record_id`.
+- Rollback goes by what objects and records hold now, not only by
+  `steps_done`, so a write whose step line was lost is undone. A backup is
+  deleted only if this run made it and the original is back in place.
+  `steps_done` only separates `nothing` from `skip-already-reverted`.
+- A record holding neither the run's values nor the old ones is drift,
+  also for a failed `UpdateItem`. If it holds the old values and no `ddb`
+  step was recorded, the row shows `nothing`.
+- Refuses configs where preservation and access are the same bucket;
+  ignores a torn last report line.
