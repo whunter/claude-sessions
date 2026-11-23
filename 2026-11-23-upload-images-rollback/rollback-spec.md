@@ -95,6 +95,18 @@ Only rows whose `ddb` step completed with `ddb_action=update`:
   `thumbnail_path` and the `updatedAt` this run wrote. Otherwise the row fails
   as drift.
 
+Decided 2026-11-23, after piece 1:
+
+- An empty `old_updated_at` means the record had no `updatedAt`; rollback
+  REMOVEs it.
+- Rows with `ddb_action=fail` and a non-empty `new_updated_at` (the
+  `UpdateItem` was sent but returned an error, e.g. a timeout) are also
+  rolled back, under the same condition. If the write never landed, the
+  record won't hold this run's values, and the row is
+  `skip-already-reverted` (it already holds the old values) or drift.
+- Piece 1 also records `replaced_md5` and `new_updated_at`, which the
+  re-run and drift checks use.
+
 ### Re-running
 
 An interrupted rollback can be run again. Items already reverted are reported
